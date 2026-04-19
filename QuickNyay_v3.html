@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Nyay – Smart Legal Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════════════ */
+:root{
+  --bg0:#030810;--bg1:#060e1c;--bg2:#0a1628;--bg3:#0e1f3a;
+  --glass:rgba(10,22,40,0.72);--glass2:rgba(14,31,58,0.55);
+  --b1:rgba(56,112,240,0.13);--b2:rgba(56,112,240,0.26);--b3:rgba(56,112,240,0.45);
+  --blue:#2563eb;--blue2:#3b82f6;--blue3:#60a5fa;--blue4:#93c5fd;
+  --cyan:#0891b2;--cyan2:#22d3ee;
+  --green:#059669;--green2:#34d399;
+  --red:#dc2626;--red2:#f87171;
+  --gold:#d97706;--gold2:#fbbf24;
+  --pink:#be185d;--pink2:#f472b6;
+  --purple:#7c3aed;--purple2:#a78bfa;
+  --orange:#ea580c;--orange2:#fb923c;
+  --slate:#475569;
+  --t0:#f8fafc;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --r:16px;--rsm:10px;--rlg:22px;
+  --sh:0 4px 24px rgba(0,0,0,.45);--shb:0 12px 48px rgba(0,0,0,.6);
+  --tr:.26s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg0);color:var(--t1);min-height:100vh;overflow-x:hidden;line-height:1.6}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;background:none}
+input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg0)}
+::-webkit-scrollbar-thumb{background:var(--blue);border-radius:3px}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════════════════ */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;height:62px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 5%;
+  background:rgba(3,8,16,.8);backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border-bottom:1px solid var(--b1);transition:background var(--tr);
+}
+.nlogo{
+  font-family:'Fraunces',serif;font-size:1.4rem;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(120deg,#fff 35%,var(--blue4));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  cursor:pointer;
+}
+.nlogo em{font-style:italic;-webkit-text-fill-color:var(--blue3);color:var(--blue3)}
+.npills{display:flex;align-items:center;gap:.3rem}
+.npill{
+  font-size:.8rem;font-weight:500;color:var(--t3);
+  padding:.35rem .85rem;border-radius:50px;cursor:pointer;
+  transition:color var(--tr),background var(--tr);
+}
+.npill:hover,.npill.on{color:var(--t0);background:rgba(59,130,246,.11)}
+.ncta{
+  font-size:.8rem;font-weight:700;color:#fff;
+  padding:.4rem 1.1rem;border-radius:50px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  box-shadow:0 2px 14px rgba(37,99,235,.35);
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.ncta:hover{transform:translateY(-1px);box-shadow:0 4px 22px rgba(37,99,235,.5)}
+.ham{display:none;flex-direction:column;gap:5px;padding:4px;cursor:pointer}
+.ham span{display:block;width:22px;height:2px;background:var(--t1);border-radius:2px;transition:var(--tr)}
+#mobnav{
+  display:none;position:fixed;top:62px;left:0;right:0;z-index:899;
+  background:rgba(3,8,16,.97);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--b1);padding:1rem 5%;
+  flex-direction:column;gap:.3rem;
+}
+#mobnav.open{display:flex}
+.mpill{
+  font-size:.95rem;font-weight:500;color:var(--t1);
+  padding:.65rem 1rem;border-radius:var(--rsm);cursor:pointer;
+  border-bottom:1px solid var(--b1);
+  transition:background var(--tr);
+}
+.mpill:hover{background:rgba(59,130,246,.07)}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════════════════════ */
+.screen{display:none;animation:scIn .38s ease both}
+.screen.on{display:block}
+@keyframes scIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════════════════════
+   LANDING
+═══════════════════════════════════════════════════════════ */
+#s0{position:relative;overflow:hidden;min-height:100vh}
+.lbg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 85% 65% at 65% 38%,rgba(37,99,235,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 55% 50% at 15% 72%,rgba(8,145,178,.08) 0%,transparent 55%),
+    radial-gradient(ellipse 45% 55% at 88% 78%,rgba(124,58,237,.07) 0%,transparent 55%),
+    linear-gradient(180deg,var(--bg0),var(--bg1));
+}
+.lgrid{
+  position:absolute;inset:0;opacity:.03;
+  background-image:linear-gradient(rgba(147,197,253,.7) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(147,197,253,.7) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+.ob1{width:480px;height:480px;background:rgba(37,99,235,.09);top:-100px;right:8%;animation:fl 11s ease-in-out infinite}
+.ob2{width:360px;height:360px;background:rgba(8,145,178,.07);bottom:5%;left:-4%;animation:fl 13s ease-in-out infinite 2s reverse}
+.ob3{width:240px;height:240px;background:rgba(124,58,237,.08);top:38%;right:0;animation:fl 9s ease-in-out infinite 1s}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-38px)}}
+
+.lwrap{
+  position:relative;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;min-height:100vh;
+  padding:100px 5% 80px;text-align:center;
+}
+.lbadge{
+  display:inline-flex;align-items:center;gap:.45rem;margin-bottom:1.8rem;
+  background:rgba(37,99,235,.1);border:1px solid rgba(59,130,246,.24);
+  color:var(--blue4);font-size:.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  padding:.36rem 1rem;border-radius:50px;
+  animation:fdU .7s ease both;
+}
+.bdot{width:6px;height:6px;background:var(--cyan2);border-radius:50%;animation:blk 2s infinite}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes fdU{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fdD{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.ltitle{
+  font-family:'Fraunces',serif;font-size:clamp(2.8rem,8.5vw,6.2rem);
+  line-height:1.05;letter-spacing:-2px;color:var(--t0);margin-bottom:1.3rem;
+  animation:fdD .7s .1s ease both;
+}
+.ltitle .hl{
+  font-style:italic;
+  background:linear-gradient(125deg,var(--blue2),var(--cyan2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.lsub{
+  font-size:clamp(.95rem,2vw,1.15rem);color:var(--t2);max-width:540px;
+  line-height:1.75;margin-bottom:2.5rem;animation:fdD .7s .2s ease both;
+}
+
+/* hero search */
+.lsrchbox{
+  width:100%;max-width:620px;position:relative;margin-bottom:2rem;
+  animation:fdD .7s .3s ease both;
+}
+.lsrch{
+  width:100%;padding:1rem 3.6rem 1rem 1.4rem;
+  background:rgba(10,22,40,.82);border:1px solid var(--b2);
+  border-radius:var(--r);color:var(--t0);font-size:.96rem;
+  backdrop-filter:blur(12px);
+  transition:border-color var(--tr),box-shadow var(--tr);
+}
+.lsrch::placeholder{color:var(--t3)}
+.lsrch:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(59,130,246,.15),0 0 35px rgba(37,99,235,.15)}
+.smicbtn{
+  position:absolute;right:.85rem;top:50%;transform:translateY(-50%);
+  color:var(--t3);padding:.3rem;border-radius:8px;
+  transition:color var(--tr),background var(--tr);
+}
+.smicbtn:hover{color:var(--blue4);background:rgba(59,130,246,.1)}
+.smicbtn.rec{color:var(--red2);animation:blk 1s infinite}
+
+/* cta row */
+.lbtnrow{
+  display:flex;gap:.9rem;flex-wrap:wrap;justify-content:center;
+  animation:fdD .7s .4s ease both;margin-bottom:3.5rem;
+}
+.bprimary{
+  font-size:.96rem;font-weight:700;color:#fff;
+  padding:.85rem 2.1rem;border-radius:var(--rsm);
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  box-shadow:0 4px 22px rgba(37,99,235,.42);
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.bprimary:hover{transform:translateY(-2px);box-shadow:0 8px 34px rgba(37,99,235,.55)}
+.bghost{
+  font-size:.96rem;font-weight:500;color:var(--t1);
+  padding:.85rem 2.1rem;border-radius:var(--rsm);
+  border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(8px);
+  transition:background var(--tr),border-color var(--tr);
+}
+.bghost:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.26)}
+
+/* stat cards */
+.statrow{
+  display:flex;gap:1.1rem;flex-wrap:wrap;justify-content:center;
+  animation:fdD .7s .5s ease both;
+}
+.stcard{
+  background:var(--glass);border:1px solid var(--b1);
+  border-radius:var(--r);padding:1.1rem 1.9rem;
+  backdrop-filter:blur(14px);text-align:center;min-width:132px;
+  transition:border-color var(--tr),transform var(--tr);
+}
+.stcard:hover{border-color:var(--b2);transform:translateY(-3px)}
+.stn{
+  font-family:'Fraunces',serif;font-size:2.3rem;line-height:1;
+  background:linear-gradient(135deg,#fff,var(--blue4));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stl{font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-top:.25rem}
+
+/* ═══════════════════════════════════════════════════════════
+   LAWS SEARCH SCREEN
+═══════════════════════════════════════════════════════════ */
+#s1{padding:84px 5% 80px}
+.pghd{text-align:center;margin-bottom:2.5rem}
+.pgtag{font-size:.68rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--blue4);margin-bottom:.5rem}
+.pgttl{font-family:'Fraunces',serif;font-size:clamp(1.8rem,4vw,2.8rem);color:var(--t0);margin-bottom:.6rem}
+.pgsub{font-size:.9rem;color:var(--t2);max-width:460px;margin:0 auto}
+
+/* search + filter toolbar */
+.stbar{
+  display:flex;gap:.8rem;flex-wrap:wrap;align-items:center;
+  max-width:840px;margin:0 auto 2rem;
+}
+.srchfld{
+  flex:1;min-width:220px;position:relative;
+}
+.srch{
+  width:100%;padding:.8rem 3rem .8rem 1.1rem;
+  background:var(--glass);border:1px solid var(--b1);
+  border-radius:var(--rsm);color:var(--t0);font-size:.88rem;
+  backdrop-filter:blur(12px);
+  transition:border-color var(--tr),box-shadow var(--tr);
+}
+.srch::placeholder{color:var(--t3)}
+.srch:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.sico{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
+.catbtn{
+  font-size:.75rem;font-weight:600;color:var(--t2);
+  padding:.5rem 1rem;border-radius:50px;
+  border:1px solid var(--b1);background:var(--glass);
+  backdrop-filter:blur(8px);white-space:nowrap;
+  transition:color var(--tr),background var(--tr),border-color var(--tr);
+}
+.catbtn:hover,.catbtn.sel{
+  color:var(--t0);background:rgba(59,130,246,.14);border-color:var(--b2);
+}
+.catbtn.sel{color:var(--blue4)}
+
+/* cat chips row */
+.chips{
+  max-width:840px;margin:0 auto 2rem;
+  display:flex;flex-wrap:wrap;gap:.5rem;
+}
+.chip{
+  font-size:.72rem;font-weight:600;padding:.35rem .9rem;border-radius:50px;
+  border:1px solid var(--b1);color:var(--t3);
+  transition:all var(--tr);cursor:pointer;white-space:nowrap;
+}
+.chip:hover,.chip.act{color:var(--t0);background:rgba(59,130,246,.14);border-color:var(--b2)}
+.chip.act{color:var(--blue4)}
+
+/* law grid */
+.lgrid2{
+  max-width:840px;margin:0 auto;
+  display:grid;grid-template-columns:1fr;gap:.65rem;
+}
+/* law card accordion */
+.lawcard{
+  background:var(--glass);border:1px solid var(--b1);
+  border-radius:var(--r);overflow:hidden;
+  transition:border-color var(--tr);
+}
+.lawcard:hover{border-color:var(--b2)}
+.lchdr{
+  display:flex;align-items:center;gap:1rem;padding:.95rem 1.2rem;
+  cursor:pointer;user-select:none;
+  transition:background var(--tr);
+}
+.lchdr:hover{background:rgba(59,130,246,.04)}
+.lcsec{
+  background:rgba(37,99,235,.12);border:1px solid rgba(59,130,246,.22);
+  color:var(--blue4);font-size:.72rem;font-weight:700;
+  padding:.18rem .6rem;border-radius:6px;white-space:nowrap;flex-shrink:0;
+}
+.lcsh{font-size:.86rem;color:var(--t1);flex:1}
+.lccat{
+  font-size:.65rem;font-weight:700;padding:.15rem .55rem;border-radius:5px;
+  flex-shrink:0;
+}
+.lchev{color:var(--t3);font-size:.75rem;transition:transform var(--tr);flex-shrink:0}
+.lawcard.open .lchev{transform:rotate(180deg)}
+.lcbody{max-height:0;overflow:hidden;transition:max-height .34s cubic-bezier(.4,0,.2,1)}
+.lawcard.open .lcbody{max-height:320px}
+.lcinner{padding:.75rem 1.2rem 1.1rem;border-top:1px solid var(--b1)}
+.lcd{font-size:.84rem;color:var(--t2);line-height:1.65;margin-bottom:.6rem}
+.lcex{font-size:.8rem;color:var(--t3);font-style:italic;margin-bottom:.6rem}
+.lcpun{
+  display:inline-flex;align-items:center;gap:.35rem;
+  background:rgba(220,38,38,.1);border:1px solid rgba(248,113,113,.2);
+  color:var(--red2);font-size:.74rem;font-weight:600;
+  padding:.25rem .75rem;border-radius:5px;
+}
+.nores{text-align:center;padding:4rem 1rem;color:var(--t3)}
+.nores svg{width:48px;display:block;margin:0 auto 1rem;opacity:.3}
+.lcount{
+  max-width:840px;margin:0 auto 1rem;
+  font-size:.75rem;color:var(--t3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CATEGORIES SCREEN
+═══════════════════════════════════════════════════════════ */
+#s2{padding:84px 5% 80px}
+.catgrid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));
+  gap:1.1rem;margin-top:2.5rem;
+}
+.ccard{
+  background:var(--glass);border:1px solid var(--b1);
+  border-radius:var(--r);padding:1.55rem;cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform var(--tr),box-shadow var(--tr),border-color var(--tr);
+}
+.ccard::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity var(--tr)}
+.ccard:hover{transform:translateY(-5px);box-shadow:var(--shb);border-color:var(--b2)}
+.ccard:hover::before{opacity:1}
+.ctbar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.cnum{font-size:.63rem;font-weight:700;letter-spacing:2px;color:var(--t3);margin-bottom:.75rem}
+.cico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;margin-bottom:.85rem}
+.cname{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--t0);margin-bottom:.35rem}
+.cdesc{font-size:.8rem;color:var(--t2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.claw-c{font-size:.68rem;color:var(--t3);margin-top:.6rem}
+.carr{
+  position:absolute;right:1.1rem;bottom:1.1rem;
+  color:var(--blue4);opacity:0;transform:translateX(-6px);
+  transition:opacity var(--tr),transform var(--tr);font-size:.95rem;
+}
+.ccard:hover .carr{opacity:1;transform:translateX(0)}
+
+/* ═══════════════════════════════════════════════════════════
+   DETAIL SCREEN
+═══════════════════════════════════════════════════════════ */
+#s3{padding:80px 5% 80px;max-width:860px;margin:0 auto}
+.backbtn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  font-size:.82rem;font-weight:500;color:var(--t2);
+  padding:.44rem .95rem;border-radius:var(--rsm);
+  border:1px solid var(--b1);margin-bottom:1.8rem;
+  transition:color var(--tr),background var(--tr);
+}
+.backbtn:hover{color:var(--t0);background:rgba(255,255,255,.05)}
+
+.dhero{
+  background:var(--glass2);border:1px solid var(--b1);
+  border-radius:var(--rlg);padding:1.9rem;margin-bottom:1.8rem;
+  position:relative;overflow:hidden;
+}
+.dgl{position:absolute;top:-45px;right:-45px;width:170px;height:170px;border-radius:50%;filter:blur(50px);opacity:.14}
+.dtag{font-size:.64rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue4);margin-bottom:.45rem}
+.dttl{font-family:'Fraunces',serif;font-size:2.1rem;color:var(--t0);margin-bottom:.5rem}
+.ddsc{font-size:.92rem;color:var(--t2);line-height:1.7;max-width:680px}
+
+.sh2{
+  display:flex;align-items:center;gap:.7rem;
+  font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--blue4);margin-bottom:.9rem;
+}
+.sh2::after{content:'';flex:1;height:1px;background:var(--b1)}
+.dtlaws{margin-bottom:1.8rem}
+.dsteps{margin-bottom:1.8rem}
+.stepcard{
+  display:flex;gap:.9rem;align-items:flex-start;
+  background:var(--glass);border:1px solid var(--b1);
+  border-radius:var(--rsm);padding:1rem 1.2rem;margin-bottom:.55rem;
+  transition:border-color var(--tr),transform var(--tr);
+}
+.stepcard:hover{border-color:var(--b2);transform:translateX(4px)}
+.snum{
+  min-width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;font-weight:700;font-size:.82rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.stitle{font-size:.9rem;font-weight:600;color:var(--t0);margin-bottom:.2rem}
+.sdesc{font-size:.82rem;color:var(--t2);line-height:1.55}
+.hlblock{
+  background:linear-gradient(135deg,rgba(5,150,105,.1),rgba(8,145,178,.08));
+  border:1px solid rgba(52,211,153,.18);border-radius:var(--r);padding:1.4rem;
+}
+.hlrow{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:.7rem;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.hlrow:last-child{border-bottom:none;padding-bottom:0}
+.hlname{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3)}
+.hlnum{font-family:'Fraunces',serif;font-size:1.9rem;color:var(--green2);line-height:1}
+.hlcall{
+  background:var(--green);color:#fff;font-weight:700;font-size:.78rem;
+  padding:.5rem 1.2rem;border-radius:var(--rsm);text-decoration:none;
+  transition:transform var(--tr),box-shadow var(--tr);display:inline-block;
+}
+.hlcall:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(5,150,105,.35)}
+
+/* ═══════════════════════════════════════════════════════════
+   FIR SCREEN
+═══════════════════════════════════════════════════════════ */
+#s4{padding:84px 5% 80px;max-width:700px;margin:0 auto}
+.fircard{background:var(--glass);border:1px solid var(--b1);border-radius:var(--rlg);padding:2.2rem}
+.fircard h3{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--t0);margin-bottom:.4rem}
+.fircard p{font-size:.87rem;color:var(--t2);margin-bottom:1.8rem;line-height:1.6}
+.fg{margin-bottom:1.2rem}
+.flbl{display:block;font-size:.72rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:.42rem}
+.fin,.ftxt,.fsel{
+  width:100%;padding:.74rem .95rem;
+  background:rgba(10,22,40,.7);border:1px solid var(--b1);
+  border-radius:var(--rsm);color:var(--t0);font-size:.88rem;
+  transition:border-color var(--tr),box-shadow var(--tr);
+}
+.fin::placeholder,.ftxt::placeholder{color:var(--t3)}
+.fin:focus,.ftxt:focus,.fsel:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.ftxt{resize:vertical;min-height:110px;line-height:1.6}
+.fsel{appearance:none;cursor:pointer}
+.fsel option{background:var(--bg2);color:var(--t0)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.bgenfir{
+  width:100%;padding:.9rem;border-radius:var(--rsm);
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;font-size:.95rem;font-weight:700;
+  box-shadow:0 4px 18px rgba(37,99,235,.4);
+  transition:transform var(--tr),box-shadow var(--tr);margin-top:.4rem;
+}
+.bgenfir:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,.5)}
+#firpre{
+  margin-top:1.8rem;background:rgba(10,22,40,.7);border:1px solid var(--b1);
+  border-radius:var(--rsm);padding:1.4rem;font-family:'Courier New',monospace;
+  font-size:.78rem;color:var(--t1);line-height:1.8;white-space:pre-wrap;display:none;
+}
+.bdlfir{
+  width:100%;margin-top:.9rem;padding:.72rem;border-radius:var(--rsm);
+  background:rgba(5,150,105,.13);border:1px solid rgba(52,211,153,.18);
+  color:var(--green2);font-size:.87rem;font-weight:600;
+  transition:background var(--tr),transform var(--tr);display:none;
+}
+.bdlfir:hover{background:rgba(5,150,105,.23);transform:translateY(-1px)}
+
+/* ═══════════════════════════════════════════════════════════
+   MAP SCREEN
+═══════════════════════════════════════════════════════════ */
+#s5{padding:84px 5% 80px;max-width:900px;margin:0 auto}
+.mapcard{background:var(--glass);border:1px solid var(--b1);border-radius:var(--rlg);overflow:hidden}
+.maptop{padding:2rem;text-align:center}
+.maptop p{font-size:.88rem;color:var(--t2);margin-top:.5rem;max-width:440px;margin-left:auto;margin-right:auto}
+.blocate{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.85rem 1.9rem;border-radius:var(--rsm);
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;font-size:.9rem;font-weight:700;
+  box-shadow:0 4px 18px rgba(37,99,235,.4);
+  margin-top:1.4rem;
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.blocate:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,.5)}
+#mapwrap{
+  width:100%;height:460px;
+  display:flex;align-items:center;justify-content:center;
+  border-top:1px solid var(--b1);
+}
+#mapwrap iframe{width:100%;height:100%;border:none}
+.mapph{text-align:center;color:var(--t3);padding:2rem}
+.mapph svg{width:44px;display:block;margin:0 auto 1rem;opacity:.3}
+
+/* ═══════════════════════════════════════════════════════════
+   CHATBOT
+═══════════════════════════════════════════════════════════ */
+#cbtog{
+  position:fixed;bottom:1.8rem;right:1.8rem;z-index:901;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  box-shadow:0 4px 22px rgba(37,99,235,.5);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+#cbtog:hover{transform:scale(1.09);box-shadow:0 8px 34px rgba(37,99,235,.6)}
+.cbnot{
+  position:absolute;top:-3px;right:-3px;width:16px;height:16px;
+  background:var(--red2);border:2px solid var(--bg0);border-radius:50%;
+  font-size:.58rem;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;animation:blk 2s infinite;
+}
+#cbwin{
+  position:fixed;bottom:5.2rem;right:1.8rem;z-index:900;
+  width:348px;max-height:510px;
+  background:var(--bg2);border:1px solid var(--b1);
+  border-radius:var(--rlg);overflow:hidden;
+  box-shadow:var(--shb);flex-direction:column;display:none;
+}
+#cbwin.open{display:flex;animation:cbpop .3s cubic-bezier(.4,0,.2,1)}
+@keyframes cbpop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.cbhd{
+  background:linear-gradient(135deg,var(--blue),rgba(8,145,178,.85));
+  padding:.9rem 1.05rem;display:flex;align-items:center;gap:.7rem;flex-shrink:0;
+}
+.cbav{
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;
+}
+.cbnm{font-weight:700;font-size:.88rem;color:#fff}
+.cbst{font-size:.66rem;color:rgba(255,255,255,.7)}
+.cbx{margin-left:auto;color:rgba(255,255,255,.7);font-size:1.1rem;transition:color var(--tr)}
+.cbx:hover{color:#fff}
+.cbbody{flex:1;overflow-y:auto;padding:.85rem;display:flex;flex-direction:column;gap:.55rem;min-height:240px}
+.cbbody::-webkit-scrollbar{width:3px}
+.cbbody::-webkit-scrollbar-thumb{background:var(--b1)}
+.msg{max-width:88%;padding:.6rem .9rem;border-radius:13px;font-size:.82rem;line-height:1.55}
+.mbot{background:var(--bg3);color:var(--t1);align-self:flex-start;border-radius:4px 13px 13px 13px}
+.musr{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;align-self:flex-end;border-radius:13px 13px 4px 13px}
+.mtime{font-size:.6rem;opacity:.4;margin-top:.18rem}
+.cbchips{padding:.35rem .85rem .15rem;display:flex;flex-wrap:wrap;gap:.32rem;flex-shrink:0}
+.cbchip{
+  background:var(--bg3);border:1px solid var(--b1);
+  color:var(--blue4);font-size:.7rem;font-weight:600;
+  padding:.22rem .65rem;border-radius:5px;cursor:pointer;
+  transition:background var(--tr);
+}
+.cbchip:hover{background:rgba(59,130,246,.15)}
+.cbft{padding:.65rem .85rem;border-top:1px solid var(--b1);display:flex;gap:.45rem;flex-shrink:0}
+.cbinp{
+  flex:1;background:var(--bg3);border:1px solid var(--b1);
+  border-radius:var(--rsm);padding:.52rem .85rem;
+  color:var(--t0);font-size:.82rem;
+  transition:border-color var(--tr);
+}
+.cbinp::placeholder{color:var(--t3)}
+.cbinp:focus{outline:none;border-color:var(--blue2)}
+.cbsend{
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;width:34px;height:34px;border-radius:var(--rsm);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:transform var(--tr);
+}
+.cbsend:hover{transform:scale(1.08)}
+
+/* ═══════════════════════════════════════════════════════════
+   VOICE TOAST
+═══════════════════════════════════════════════════════════ */
+#vtst{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);
+  background:rgba(220,38,38,.9);backdrop-filter:blur(12px);
+  color:#fff;font-weight:600;font-size:.82rem;
+  padding:.6rem 1.3rem;border-radius:50px;
+  display:none;align-items:center;gap:.55rem;z-index:1000;
+  box-shadow:0 8px 22px rgba(220,38,38,.35);
+}
+#vtst.show{display:flex}
+.vdot{width:9px;height:9px;background:#fff;border-radius:50%;animation:blk 1s infinite}
+
+/* ═══════════════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════════════ */
+footer{
+  background:var(--bg1);border-top:1px solid var(--b1);
+  padding:2.5rem 5%;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:space-between;gap:1.2rem;
+}
+.ftlogo{font-family:'Fraunces',serif;font-size:1.25rem;color:var(--t0)}
+.ftlogo em{font-style:italic;color:var(--blue3)}
+.ftlinks{display:flex;gap:1.2rem;flex-wrap:wrap}
+.ftlinks span{font-size:.78rem;color:var(--t3);cursor:pointer;transition:color var(--tr)}
+.ftlinks span:hover{color:var(--blue4)}
+.ftdisc{font-size:.72rem;color:var(--t3);max-width:460px;line-height:1.6}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  .npills,.ncta{display:none}
+  .ham{display:flex}
+  .catgrid{grid-template-columns:1fr 1fr}
+  #cbwin{width:calc(100vw - 2.4rem);right:1.2rem}
+  .frow{grid-template-columns:1fr}
+  footer{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:480px){
+  .catgrid{grid-template-columns:1fr}
+  .lbtnrow{flex-direction:column;align-items:stretch}
+  .bprimary,.bghost{text-align:center}
+  .statrow{gap:.7rem}
+  .stcard{min-width:115px;padding:1rem 1.1rem}
+  .chips{gap:.35rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nlogo" onclick="go(0)">Quick<em>Nyay</em></div>
+  <div class="npills">
+    <div class="npill on" onclick="go(0)">Home</div>
+    <div class="npill" onclick="go(1)">Laws</div>
+    <div class="npill" onclick="go(2)">Categories</div>
+    <div class="npill" onclick="go(4)">FIR Generator</div>
+    <div class="npill" onclick="go(5)">Police Locator</div>
+    <div class="npill" onclick="openCB()">Nyay Bot</div>
+    <button class="ncta" onclick="go(2)">Get Help</button>
+  </div>
+  <div class="ham" id="ham" onclick="toggleMob()"><span></span><span></span><span></span></div>
+</nav>
+<div id="mobnav">
+  <div class="mpill" onclick="go(0);toggleMob()">Home</div>
+  <div class="mpill" onclick="go(1);toggleMob()">Laws Database</div>
+  <div class="mpill" onclick="go(2);toggleMob()">Categories</div>
+  <div class="mpill" onclick="go(4);toggleMob()">FIR Generator</div>
+  <div class="mpill" onclick="go(5);toggleMob()">Police Locator</div>
+  <div class="mpill" onclick="openCB();toggleMob()">Nyay Bot</div>
+</div>
+
+<!-- S0: LANDING -->
+<div id="s0" class="screen on">
+  <div class="lbg"></div><div class="lgrid"></div>
+  <div class="orb ob1"></div><div class="orb ob2"></div><div class="orb ob3"></div>
+  <div class="lwrap">
+    <div class="lbadge"><div class="bdot"></div>India's Smart Legal Assistant</div>
+    <h1 class="ltitle">Know Your <span class="hl">Rights.</span><br>Know Your Next Step.</h1>
+    <p class="lsub">Quick Nyay gives every Indian citizen instant access to 500+ Indian laws, step-by-step guidance, and emergency helplines — completely free.</p>
+    <div class="lsrchbox">
+      <input class="lsrch" id="lsrch" type="text"
+        placeholder="Search laws: IPC 420, cyber fraud, assault, property..."
+        oninput="heroSearch(this.value)"
+        onkeydown="if(event.key==='Enter')heroGo()">
+      <button class="smicbtn" id="micbtn" onclick="startVoice()" title="Voice Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+    </div>
+    <div class="lbtnrow">
+      <button class="bprimary" onclick="go(2)">Get Help Now →</button>
+      <button class="bghost" onclick="go(1)">Browse 500+ Laws</button>
+      <button class="bghost" onclick="openCB()">Chat with Nyay Bot</button>
+    </div>
+    <div class="statrow">
+      <div class="stcard"><div class="stn" id="sc1">0</div><div class="stl">Crime Categories</div></div>
+      <div class="stcard"><div class="stn" id="sc2">0</div><div class="stl">Indian Laws</div></div>
+      <div class="stcard"><div class="stn" id="sc3">0</div><div class="stl">Always Available</div></div>
+      <div class="stcard"><div class="stn" id="sc4">0</div><div class="stl">Emergency Helplines</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- S1: LAWS BROWSER -->
+<div id="s1" class="screen">
+  <div class="pghd">
+    <div class="pgtag">Legal Database</div>
+    <h2 class="pgttl">500+ Indian Laws</h2>
+    <p class="pgsub">Search by section number, keyword, or filter by crime category.</p>
+  </div>
+  <div class="stbar">
+    <div class="srchfld">
+      <input class="srch" id="srch" type="text"
+        placeholder="Search: IPC 420, cybercrime, assault..."
+        oninput="debSearch(this.value)">
+      <span class="sico">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="lcount" id="lcount"></div>
+  <div class="lgrid2" id="lgrid2"></div>
+  <div class="nores" id="nores" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <p>No laws match your search.<br><small>Try different keywords or clear filters.</small></p>
+  </div>
+</div>
+
+<!-- S2: CATEGORIES -->
+<div id="s2" class="screen">
+  <div class="pghd">
+    <div class="pgtag">Legal Help</div>
+    <h2 class="pgttl">Select Your Situation</h2>
+    <p class="pgsub">Choose a crime category to get relevant laws, action steps, and emergency helplines.</p>
+  </div>
+  <div class="catgrid" id="catgrid"></div>
+</div>
+
+<!-- S3: DETAIL -->
+<div id="s3" class="screen">
+  <button class="backbtn" onclick="go(2)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>Back to Categories
+  </button>
+  <div id="dcontent"></div>
+</div>
+
+<!-- S4: FIR -->
+<div id="s4" class="screen">
+  <div class="pghd">
+    <div class="pgtag">FIR Generator</div>
+    <h2 class="pgttl">Generate FIR Draft</h2>
+    <p class="pgsub" style="margin-bottom:0">Create a professional, ready-to-submit FIR complaint.</p>
+  </div>
+  <div class="fircard">
+    <h3>FIR Draft Generator</h3>
+    <p>Fill in the details to generate a formal FIR (First Information Report) draft. Present this to the police when filing your complaint.</p>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Full Name</label><input class="fin" id="fn" placeholder="Your full name"></div>
+      <div class="fg"><label class="flbl">Contact Number</label><input class="fin" id="fp" placeholder="Mobile number" type="tel"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Date of Incident</label><input class="fin" id="fd" type="date"></div>
+      <div class="fg">
+        <label class="flbl">Crime Category</label>
+        <select class="fsel fin" id="fc">
+          <option value="">Select category...</option>
+          <option>Cybercrime</option><option>Physical Assault</option>
+          <option>Financial Fraud</option><option>Property Dispute</option>
+          <option>Women Safety</option><option>Child Abuse</option>
+          <option>Road Accident</option><option>Police Misconduct</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Location / Address of Incident</label><input class="fin" id="fl" placeholder="Street, area, city, state"></div>
+    <div class="fg"><label class="flbl">Accused / Suspect Details</label><input class="fin" id="fa" placeholder="Name/description if known, else 'Unknown'"></div>
+    <div class="fg"><label class="flbl">Detailed Incident Description</label>
+      <textarea class="ftxt" id="fdi" placeholder="Describe what happened in full detail — sequence of events, time, mode of crime, evidence available..."></textarea></div>
+    <div class="fg"><label class="flbl">Witnesses (if any)</label><input class="fin" id="fw" placeholder="Name and contact of witnesses, or 'None'"></div>
+    <div class="fg"><label class="flbl">Evidence Available</label><input class="fin" id="fe" placeholder="Screenshots, CCTV, receipts, messages, etc."></div>
+    <button class="bgenfir" onclick="genFIR()">⚡ Generate FIR Draft</button>
+    <pre id="firpre"></pre>
+    <button class="bdlfir" id="firdl" onclick="dlFIR()">⬇ Download as Text File</button>
+  </div>
+</div>
+
+<!-- S5: MAP -->
+<div id="s5" class="screen">
+  <div class="pghd">
+    <div class="pgtag">Police Locator</div>
+    <h2 class="pgttl">Find Nearby Police Stations</h2>
+  </div>
+  <div class="mapcard">
+    <div class="maptop">
+      <p>Share your location to find the nearest police stations, cyber cells, and emergency services around you.</p>
+      <button class="blocate" onclick="locatePolice()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        </svg>
+        Find Nearby Police
+      </button>
+    </div>
+    <div id="mapwrap">
+      <div class="mapph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+          <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+        <p>Click "Find Nearby Police" to load the map.<br><small>Location access required.</small></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHATBOT -->
+<div id="cbtog" onclick="toggleCB()">
+  <div class="cbnot" id="cbnot">1</div>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</div>
+<div id="cbwin">
+  <div class="cbhd">
+    <div class="cbav">⚖️</div>
+    <div><div class="cbnm">Nyay Bot</div><div class="cbst">● Online · Legal Assistant</div></div>
+    <button class="cbx" onclick="toggleCB()">✕</button>
+  </div>
+  <div class="cbbody" id="cbbody"></div>
+  <div class="cbchips" id="cbchips">
+    <span class="cbchip" onclick="cbq('cyber fraud')">Cyber Fraud</span>
+    <span class="cbchip" onclick="cbq('road accident')">Accident</span>
+    <span class="cbchip" onclick="cbq('harassment')">Harassment</span>
+    <span class="cbchip" onclick="cbq('police fir refused')">Police Issue</span>
+    <span class="cbchip" onclick="cbq('what laws apply')">All Laws</span>
+  </div>
+  <div class="cbft">
+    <input class="cbinp" id="cbinp" placeholder="Describe your situation..."
+      onkeydown="if(event.key==='Enter')cbSend()">
+    <button class="cbsend" onclick="cbSend()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+<div id="vtst"><div class="vdot"></div>Listening… Speak now</div>
+
+<footer>
+  <div class="ftlogo">Quick<em>Nyay</em></div>
+  <div class="ftlinks">
+    <span onclick="go(0)">Home</span>
+    <span onclick="go(1)">Laws</span>
+    <span onclick="go(2)">Categories</span>
+    <span onclick="go(4)">FIR Generator</span>
+    <span onclick="go(5)">Police Locator</span>
+    <span onclick="openCB()">Nyay Bot</span>
+  </div>
+  <p class="ftdisc">⚠️ For educational purposes only. Not a substitute for professional legal advice. Consult a qualified lawyer for your situation.</p>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   CATEGORY META
+═══════════════════════════════════════════════════════════ */
+const CATS={
+  cyber:  {id:"cyber",  label:"Cybercrime",       icon:"💻",color:"#3b82f6",bg:"rgba(59,130,246,.12)",
+    kw:["cyber","online","hack","fraud","phish","upi","otp","scam","digital","malware","ransomware","identity","internet"],
+    helplines:[{n:"Cyber Crime",v:"1930"},{n:"Police",v:"100"},{n:"Legal Aid",v:"15100"}]},
+  assault:{id:"assault",label:"Physical Assault",  icon:"🛡️",color:"#ef4444",bg:"rgba(239,68,68,.12)",
+    kw:["assault","attack","hit","beat","violence","hurt","injury","fight","abuse","threat","stab","wound"],
+    helplines:[{n:"Police",v:"100"},{n:"Emergency",v:"112"},{n:"Ambulance",v:"108"}]},
+  fraud:  {id:"fraud",  label:"Financial Fraud",   icon:"💰",color:"#f59e0b",bg:"rgba(245,158,11,.12)",
+    kw:["fraud","cheat","money","bank","loan","invest","scam","ponzi","payment","credit","debt"],
+    helplines:[{n:"Cyber/Fraud",v:"1930"},{n:"Police",v:"100"},{n:"Consumer",v:"1915"}]},
+  property:{id:"property",label:"Property Dispute",icon:"🏠",color:"#8b5cf6",bg:"rgba(139,92,246,.12)",
+    kw:["property","land","house","encroach","trespass","boundary","rent","tenant","evict","registry"],
+    helplines:[{n:"Police",v:"100"},{n:"Legal Aid",v:"15100"},{n:"Revenue",v:"1800-180-2128"}]},
+  women:  {id:"women",  label:"Women Safety",      icon:"👩",color:"#ec4899",bg:"rgba(236,72,153,.12)",
+    kw:["harass","stalk","women","domestic","rape","molest","workplace","dowry","victim","sexual","eve"],
+    helplines:[{n:"Women Helpline",v:"1091"},{n:"One Stop",v:"181"},{n:"Police",v:"100"}]},
+  child:  {id:"child",  label:"Child Abuse",        icon:"🧒",color:"#10b981",bg:"rgba(16,185,129,.12)",
+    kw:["child","minor","pocso","traffic","labour","kidnap","neglect","juvenile","abuse","beg"],
+    helplines:[{n:"Childline",v:"1098"},{n:"Police",v:"100"},{n:"Legal Aid",v:"15100"}]},
+  accident:{id:"accident",label:"Road Accident",   icon:"🚗",color:"#f97316",bg:"rgba(249,115,22,.12)",
+    kw:["accident","road","car","vehicle","hit","run","crash","highway","motor","drunk","driving"],
+    helplines:[{n:"Police",v:"100"},{n:"Ambulance",v:"108"},{n:"Highway",v:"1073"}]},
+  police: {id:"police", label:"Police Misconduct", icon:"⚖️",color:"#94a3b8",bg:"rgba(148,163,184,.12)",
+    kw:["police","arrest","custody","bribe","illegal","lockup","misconduct","extort","force","third degree"],
+    helplines:[{n:"Rights Commission",v:"14433"},{n:"Legal Aid",v:"15100"},{n:"Police Complaint",v:"1090"}]},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   500+ LAWS DATASET
+═══════════════════════════════════════════════════════════ */
+const LAWS=[];
+
+/* Curated key laws */
+const CURATED=[
+  // CYBERCRIME
+  {s:"IT Act §43",  c:"cyber",  sh:"Damage to computer systems",det:"Unauthorized access, download, introduction of viruses, denial-of-service attacks on any computer system.",pun:"Compensation up to ₹1 crore",ex:"Hacker disrupts a bank's website causing service outage."},
+  {s:"IT Act §66",  c:"cyber",  sh:"Hacking & unauthorized access",det:"Dishonestly or fraudulently accessing computer systems, networks, or data without permission.",pun:"Up to 3 years imprisonment + fine up to ₹5 lakhs",ex:"Person accesses company email without authorization."},
+  {s:"IT Act §66A", c:"cyber",  sh:"Offensive messages online",det:"Sending grossly offensive, menacing, or false messages through communication services to cause annoyance.",pun:"Up to 3 years imprisonment + fine",ex:"Mass sending of threatening messages via social media."},
+  {s:"IT Act §66B", c:"cyber",  sh:"Receiving stolen computer resources",det:"Dishonestly receiving or retaining any stolen computer resource or communication device.",pun:"Up to 3 years imprisonment + fine up to ₹1 lakh",ex:"Purchasing a SIM card registered to another person."},
+  {s:"IT Act §66C", c:"cyber",  sh:"Identity theft",det:"Fraudulently using another person's electronic signature, password, or unique identification feature.",pun:"Up to 3 years imprisonment + fine up to ₹1 lakh",ex:"Using someone's Aadhaar OTP to open a bank account."},
+  {s:"IT Act §66D", c:"cyber",  sh:"Cheating by personation online",det:"Using any computer resource or communication device to cheat by impersonating another person.",pun:"Up to 3 years imprisonment + fine up to ₹1 lakh",ex:"Creating a fake customer care page to steal credentials."},
+  {s:"IT Act §66E", c:"cyber",  sh:"Privacy violation",det:"Intentionally or knowingly capturing, publishing, or transmitting the image of a private area of a person.",pun:"Up to 3 years imprisonment + fine up to ₹2 lakhs",ex:"Recording someone in a changing room without consent."},
+  {s:"IT Act §66F", c:"cyber",  sh:"Cyber terrorism",det:"Committing acts with intent to threaten the sovereignty or security of India using computer resources.",pun:"Life imprisonment",ex:"Attacking critical infrastructure like power grid."},
+  {s:"IT Act §67",  c:"cyber",  sh:"Publishing obscene material",det:"Publishing or transmitting obscene material in electronic form that is lascivious or appeals to prurient interest.",pun:"Up to 3 years + fine (first offence); up to 5 years (repeat)",ex:"Posting nude images without consent on social media."},
+  {s:"IT Act §67A", c:"cyber",  sh:"Publishing sexually explicit material",det:"Publishing material containing sexually explicit acts in electronic form.",pun:"Up to 5 years imprisonment + fine up to ₹10 lakhs",ex:"Distributing explicit videos without consent."},
+  {s:"IT Act §67B", c:"cyber",  sh:"Child pornography",det:"Publishing sexually explicit material depicting children in electronic form.",pun:"Up to 5 years + fine (first); up to 7 years + fine (repeat)",ex:"Sharing images of child sexual abuse on messaging apps."},
+  {s:"IT Act §69",  c:"cyber",  sh:"Interception of information",det:"Government power to issue directions for interception or monitoring of information through computer resources.",pun:"Up to 7 years imprisonment + fine for refusal/non-compliance",ex:"Refusing to decrypt data when government demands."},
+  {s:"IT Act §72",  c:"cyber",  sh:"Breach of confidentiality",det:"Disclosing information obtained under this Act without consent of the person concerned.",pun:"Up to 2 years imprisonment + fine up to ₹1 lakh",ex:"IT official leaking user's private email records."},
+  // ASSAULT
+  {s:"BNS §109",c:"assault",sh:"Assault",det:"Using gesture or preparation intending to cause reasonable apprehension of hurt or wrongful force.",pun:"Up to 3 months + fine",ex:"Raising a fist threateningly at a person."},
+  {s:"BNS §115",c:"assault",sh:"Voluntarily causing hurt",det:"Causing bodily pain, disease, or infirmity through voluntary act not amounting to grievous hurt.",pun:"Up to 1 year + fine up to ₹10,000",ex:"Punching a person causing bruising."},
+  {s:"BNS §117",c:"assault",sh:"Grievous hurt",det:"Causing permanent sight/hearing loss, disfiguration, fracture, or life-threatening injury.",pun:"Up to 7 years + fine",ex:"Attack causing fracture of limb."},
+  {s:"BNS §118",c:"assault",sh:"Voluntarily causing grievous hurt by dangerous weapons",det:"Using any instrument for shooting, stabbing, cutting, or fire to cause grievous hurt.",pun:"Up to 7 years + fine",ex:"Stabbing someone with a knife."},
+  {s:"BNS §351",c:"assault",sh:"Criminal intimidation",det:"Threatening another person to cause injury to body, reputation, or property to force them to act unlawfully.",pun:"Up to 2 years + fine",ex:"Threatening to harm family if complaint is filed."},
+  {s:"BNS §132",c:"assault",sh:"Culpable homicide not amounting to murder",det:"Causing death with intention to cause it, or with knowledge that the act is likely to cause death.",pun:"Life imprisonment or up to 10 years + fine",ex:"Death resulting from a fight that escalated."},
+  {s:"BNS §101",c:"assault",sh:"Murder",det:"Culpable homicide with intent to cause death, or to cause bodily injury sufficient to cause death.",pun:"Death or life imprisonment + fine",ex:"Premeditated killing."},
+  // FRAUD
+  {s:"BNS §318",c:"fraud",sh:"Cheating",det:"Fraudulently or dishonestly deceiving any person to deliver property, or to do or omit anything causing damage.",pun:"Up to 7 years + fine",ex:"Selling fake medicines claiming they are genuine."},
+  {s:"BNS §319",c:"fraud",sh:"Cheating by personation",det:"Fraudulently pretending to be someone else — another real or imaginary person.",pun:"Up to 5 years + fine",ex:"Posing as a bank official to collect documents."},
+  {s:"BNS §316",c:"fraud",sh:"Criminal breach of trust",det:"Entrusted property being dishonestly misappropriated or converted to own use.",pun:"Up to 7 years + fine",ex:"Company director misusing investor funds."},
+  {s:"BNS §317",c:"fraud",sh:"Dishonest misappropriation",det:"Dishonestly misappropriating or converting movable property of another to one's own use.",pun:"Up to 2 years + fine",ex:"Employee stealing from petty cash."},
+  {s:"PMLA §4",c:"fraud",sh:"Money laundering",det:"Concealing or projecting proceeds of crime as untainted property to evade law.",pun:"3 to 7 years rigorous imprisonment + fine up to ₹5 lakhs",ex:"Converting black money to white through fake businesses."},
+  // PROPERTY
+  {s:"BNS §329",c:"property",sh:"Criminal trespass",det:"Entering property in another's possession with intent to commit offence, intimidate, insult, or annoy.",pun:"Up to 3 months + fine up to ₹500",ex:"Entering neighbour's land to steal crops."},
+  {s:"BNS §331",c:"property",sh:"House trespass",det:"Criminal trespass by entering or remaining in any building, tent, or vessel used as human dwelling.",pun:"Up to 1 year + fine up to ₹1,000",ex:"Entering someone's home during their absence."},
+  {s:"BNS §302",c:"property",sh:"Mischief",det:"Destroying or diminishing value of property belonging to another person.",pun:"Up to 3 months + fine",ex:"Damaging a parked vehicle out of spite."},
+  {s:"BNS §303",c:"property",sh:"Mischief causing significant damage",det:"Committing mischief where damage or destruction causes loss of ₹20,000 or more.",pun:"Up to 2 years + fine",ex:"Vandalising shop property worth ₹50,000."},
+  {s:"TPA §5",c:"property",sh:"Transfer of property",det:"Conveyance of property from one person to another in present or future, governed by Transfer of Property Act.",pun:"Civil liability; fraudulent transfer = criminal fraud",ex:"Selling property with forged title documents."},
+  // WOMEN SAFETY
+  {s:"BNS §64",c:"women",sh:"Rape",det:"Non-consensual sexual intercourse with a woman. Includes any sexual intercourse without free consent.",pun:"Minimum 10 years rigorous imprisonment, may extend to life",ex:"Sexual assault of any kind without consent."},
+  {s:"BNS §70",c:"women",sh:"Gang rape",det:"Rape committed by a group of persons acting in furtherance of common intention.",pun:"Minimum 20 years rigorous imprisonment or life imprisonment",ex:"Assault by multiple perpetrators."},
+  {s:"BNS §74",c:"women",sh:"Sexual harassment",det:"Unwelcome physical contact, sexually coloured remarks, demands for sexual favours, or showing pornography.",pun:"Up to 3 years + fine",ex:"Colleague making repeated unwanted advances at workplace."},
+  {s:"BNS §78",c:"women",sh:"Stalking",det:"Following a woman or contacting/monitoring her repeatedly despite her clear disinterest.",pun:"Up to 3 years (first); up to 5 years (repeat offence)",ex:"Man repeatedly following woman home from office."},
+  {s:"BNS §85",c:"women",sh:"Dowry death",det:"Death of woman within 7 years of marriage from burns or bodily injury with harassment by husband/in-laws.",pun:"Minimum 7 years imprisonment, up to life",ex:"Woman killed by in-laws due to insufficient dowry."},
+  {s:"PWDVA §3",c:"women",sh:"Domestic violence",det:"Physical, sexual, verbal, emotional, or economic abuse by household members against a woman.",pun:"Up to 1 year + fine up to ₹20,000 per breach of protection order",ex:"Husband physically abusing wife at home."},
+  {s:"POSH §4",c:"women",sh:"Sexual harassment at workplace",det:"Mandatory constitution of Internal Complaints Committee (ICC) by all organizations with 10+ employees.",pun:"Warning, termination, or criminal prosecution; ₹50,000 fine for non-compliance",ex:"Manager harassing female employee."},
+  // CHILD ABUSE
+  {s:"POCSO §3",c:"child",sh:"Penetrative sexual assault on child",det:"Sexual assault involving penetration on a child below 18 years. Comprehensive protection.",pun:"Minimum 10 years rigorous imprisonment, up to life; death in aggravated cases",ex:"Any form of penetrative sexual act with a minor."},
+  {s:"POCSO §8",c:"child",sh:"Sexual assault on child",det:"Non-penetrative sexual assault including touching or manipulation of child's body for sexual intent.",pun:"Minimum 3 years up to 5 years + fine",ex:"Inappropriate touching of a child under 18."},
+  {s:"POCSO §11",c:"child",sh:"Sexual harassment of child",det:"Showing pornography to a child, making sexual gestures, or grooming a child for sexual purpose.",pun:"Up to 3 years + fine",ex:"Sending explicit images to a minor online."},
+  {s:"JJ Act §75",c:"child",sh:"Cruelty to child",det:"Assault, abandonment, exposure, willful neglect of a child causing unnecessary suffering.",pun:"Up to 3 years + fine up to ₹1 lakh",ex:"Forcing a child to beg or work in hazardous conditions."},
+  {s:"Child Labour §3",c:"child",sh:"Prohibition of child labour",det:"No child below 14 to be employed in any occupation; below 18 not in hazardous processes.",pun:"Up to 2 years + fine ₹20,000–₹50,000 (subsequent: up to 3 years)",ex:"Factory owner employing 12-year-old."},
+  {s:"BNS §137",c:"child",sh:"Kidnapping",det:"Taking or enticing a child under 10 from lawful guardianship. Also covers kidnapping from India.",pun:"Up to 7 years + fine",ex:"Abducting a minor from school premises."},
+  // ROAD ACCIDENT
+  {s:"BNS §281",c:"accident",sh:"Rash driving",det:"Driving on a public road in manner that endangers life or personal safety of others.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Overtaking at high speed on a busy highway."},
+  {s:"BNS §106",c:"accident",sh:"Death by negligence",det:"Causing death of another through rash or negligent act, not amounting to culpable homicide.",pun:"Up to 5 years + fine; up to 10 years if driver flees",ex:"Running red light causing fatal accident."},
+  {s:"BNS §125",c:"accident",sh:"Act endangering life",det:"Doing any act rashly or negligently that endangers human life or safety of others.",pun:"Up to 3 months + fine",ex:"Using mobile phone while driving."},
+  {s:"MV Act §134",c:"accident",sh:"Duty to report accident",det:"Driver must stop, render assistance to injured, and report to nearest police station after an accident.",pun:"Up to 6 months + fine",ex:"Driver leaving scene after collision."},
+  {s:"MV Act §184",c:"accident",sh:"Dangerous driving",det:"Driving a motor vehicle in a manner dangerous to public, considering nature and condition of road.",pun:"Up to 6 months + fine; 2 years for repeat offence",ex:"Weaving through traffic at 120 km/h."},
+  {s:"MV Act §185",c:"accident",sh:"Drunk driving",det:"Driving while blood-alcohol concentration exceeds 30 mg/100 ml of blood.",pun:"Up to 6 months + fine ₹10,000; second offence: up to 2 years + fine ₹15,000",ex:"Driver caught with 0.08% BAC at checkpoint."},
+  {s:"MV Act §163A",c:"accident",sh:"Compensation for accident victims",det:"Structured formula for compensation to victims of road accidents payable by vehicle owner/insurer.",pun:"Mandatory compensation per structured formula",ex:"Family of accident victim claiming compensation."},
+  // POLICE MISCONDUCT
+  {s:"Const Art.21",c:"police",sh:"Right to life and liberty",det:"No person shall be deprived of life or personal liberty except according to procedure established by law.",pun:"State liable for compensation; contempt of court",ex:"Illegal police detention without producing before magistrate."},
+  {s:"Const Art.22",c:"police",sh:"Protection against arbitrary arrest",det:"Right to be informed of grounds of arrest, right to counsel, and production before magistrate within 24 hours.",pun:"Illegal arrest = contempt; state compensation",ex:"Arresting person without informing family."},
+  {s:"BNSS §35",c:"police",sh:"Procedure of arrest",det:"Arrest memo must be prepared, family/friend notified immediately, medical examination on request.",pun:"Non-compliance = contempt; departmental action",ex:"Police refusing to allow arrested person to call family."},
+  {s:"BNS §197",c:"police",sh:"Injury by public servant to extort confession",det:"Public servant voluntarily causing hurt to extort confession or information.",pun:"Up to 10 years + fine",ex:"Police beating detainee to force confession."},
+  {s:"BNS §199",c:"police",sh:"Public servant making false record",det:"Public servant making or translating a false document with intent to cause injury to any person.",pun:"Up to 3 years + fine",ex:"Police falsifying FIR details."},
+  {s:"DK Basu §1",c:"police",sh:"DK Basu Guidelines",det:"Supreme Court mandatory guidelines: arrest memo, identity display, medical examination, family notification within 8 hours.",pun:"Breach = contempt of Supreme Court",ex:"Police failing to show identity during arrest."},
+];
+
+LAWS.push(...CURATED);
+
+/* ── Generate BNS §100–500 ── */
+const BNS_TEMPLATES=[
+  {s:100,c:"assault",sh:"Private defence of body",det:"Right of every person to defend body against assault. Extends to causing death in certain grave situations.",pun:"No punishment — acts in private defence are exempt",ex:"Person attacking back when being assaulted with weapon."},
+  {s:103,c:"assault",sh:"When right of private defence extends to causing death",det:"Right to cause death of an aggressor when there is reasonable apprehension of death or grievous hurt.",pun:"No punishment if genuinely exercised",ex:"Person killing attacker to prevent own death."},
+  {s:108,c:"assault",sh:"Abetment of offence",det:"Instigating, engaging in conspiracy, or intentionally aiding a person to commit an offence.",pun:"Same as the principal offence",ex:"Encouraging someone to commit assault."},
+  {s:110,c:"assault",sh:"Abetment if person abetted acts innocently",det:"If offence is committed due to abetment even if the person abetted acted without criminal intent.",pun:"Punishment of the offence abetted",ex:"Tricking an innocent person into committing a crime."},
+  {s:111,c:"assault",sh:"Liability of abettor when different effect",det:"When effect caused by abetted act is different from what was intended, abettor still liable.",pun:"As per the offence committed",ex:"Instigating assault but victim dies."},
+  {s:120,c:"fraud",sh:"Wrongful restraint",det:"Obstructing a person from proceeding in any direction they have a right to go.",pun:"Up to 1 month + fine up to ₹5,000",ex:"Blocking a car and not letting driver leave."},
+  {s:121,c:"assault",sh:"Wrongful confinement",det:"Wrongfully restraining a person in a way that prevents them from proceeding beyond certain limits.",pun:"Up to 1 year + fine up to ₹5,000",ex:"Locking someone in a room against their will."},
+  {s:122,c:"assault",sh:"Wrongful confinement for 3+ days",det:"Wrongful confinement for three or more days.",pun:"Up to 3 years + fine",ex:"Holding employee captive for days to extract documents."},
+  {s:140,c:"property",sh:"Receiving stolen property",det:"Dishonestly receiving or retaining stolen property knowing it to be stolen.",pun:"Up to 3 years + fine",ex:"Buying a stolen mobile phone knowingly."},
+  {s:143,c:"property",sh:"Being member of unlawful assembly",det:"Being part of an assembly of 5 or more persons with common unlawful object.",pun:"Up to 6 months + fine",ex:"Joining a mob that attacks a property."},
+  {s:147,c:"assault",sh:"Rioting",det:"Using force or violence by unlawful assembly or any member thereof, in prosecution of common object.",pun:"Up to 2 years + fine",ex:"Mob violence during a protest."},
+  {s:149,c:"assault",sh:"Every member liable for offence in prosecution",det:"If any member commits offence in prosecution of common object of unlawful assembly, every member guilty.",pun:"Same as the offence committed",ex:"Member of mob that kills someone guilty of murder."},
+  {s:154,c:"fraud",sh:"Owner permitting unlawful assembly",det:"Owner of land knowingly permitting unlawful assembly to meet on the land.",pun:"Up to 10 days + fine up to ₹1,000",ex:"Landlord knowingly renting for criminal gathering."},
+  {s:158,c:"assault",sh:"Being hired to take part in rioting",det:"Engaging to commit, or offering to engage to commit, any offence for hire.",pun:"Up to 2 years + fine",ex:"Being paid to participate in a riot."},
+  {s:168,c:"fraud",sh:"Public servant unlawfully engaging in trade",det:"Public servant engaging in trade prohibited by their service rules.",pun:"Up to 1 year + fine",ex:"Government officer running a private business."},
+  {s:175,c:"police",sh:"Omission to produce document",det:"Intentionally omitting to produce a document required to be produced by legal authority.",pun:"Up to 1 month + fine up to ₹500",ex:"Refusing to show ownership papers when legally required."},
+  {s:177,c:"police",sh:"Furnishing false information",det:"Giving false information to any public servant on a subject the servant is obliged to inquire into.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Giving wrong address to police investigating crime."},
+  {s:178,c:"police",sh:"Refusing to answer questions",det:"Refusing to answer any question put by a public servant in the exercise of lawful powers.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Witness refusing to answer magistrate's questions."},
+  {s:179,c:"police",sh:"Refusing to take oath",det:"Refusing to be bound by oath to give evidence when required by public servant.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Witness refusing to swear oath in court."},
+  {s:181,c:"police",sh:"False statement on oath",det:"Making a false statement on oath or solemn affirmation when required by law.",pun:"Up to 3 years + fine",ex:"Swearing falsely in an affidavit."},
+  {s:191,c:"police",sh:"Giving false evidence",det:"Making any false statement before any court, tribunal, or arbitrator, or giving false certificate.",pun:"Up to 7 years + fine",ex:"Witness lying under oath in court."},
+  {s:193,c:"fraud",sh:"False evidence to procure conviction",det:"Fabricating false evidence in capital offence or conviction proceedings.",pun:"Life imprisonment or up to 10 years + fine",ex:"Planting fake evidence to get someone convicted."},
+  {s:201,c:"fraud",sh:"Causing disappearance of evidence",det:"Knowingly causing disappearance of evidence of an offence to screen offender from legal punishment.",pun:"Up to 7 years + fine (if offence is punishable by life)",ex:"Destroying CCTV footage after crime."},
+  {s:202,c:"fraud",sh:"Intentional omission to give information",det:"Omitting to give information to public servant about an offence the person knows has been committed.",pun:"Up to 6 months + fine",ex:"Witness knowingly not reporting a crime they saw."},
+  {s:205,c:"fraud",sh:"False personation for legal proceeding",det:"Falsely personating another person at an examination or in any proceeding before public servant.",pun:"Up to 3 years + fine",ex:"Appearing for someone else's court date falsely."},
+  {s:211,c:"police",sh:"False charge of offence",det:"Instituting or causing to be instituted criminal proceedings knowing there is no just or lawful ground.",pun:"Up to 7 years + fine",ex:"Filing false FIR to harass someone."},
+  {s:215,c:"fraud",sh:"Taking gifts to help recover stolen property",det:"Receiving gifts to help recover stolen property without prosecuting or making effort to find guilty person.",pun:"Up to 2 years + fine",ex:"Police accepting bribe to 'recover' stolen goods."},
+  {s:218,c:"police",sh:"Public servant framing incorrect record",det:"Public servant framing incorrect record or writing intending to save person from legal punishment.",pun:"Up to 3 years + fine",ex:"Police officer changing FIR to protect accused."},
+  {s:221,c:"police",sh:"Intentional omission to apprehend on warrant",det:"Public servant intentionally omitting to apprehend a person whom they are legally bound to apprehend.",pun:"Up to 7 years + fine (if offence punishable by 10 years)",ex:"Police deliberately not arresting accused."},
+  {s:227,c:"police",sh:"Violation of condition of remission",det:"Convicted person violating any condition on which remission of punishment was granted.",pun:"Undergo unexpired sentence",ex:"Parolee violating travel restriction."},
+  {s:236,c:"fraud",sh:"Counterfeiting coin",det:"Making or counterfeiting any coin which is legal tender in India.",pun:"Up to 10 years + fine",ex:"Creating fake ₹500 notes."},
+  {s:246,c:"fraud",sh:"Fraudulently diminishing weight of coin",det:"Fraudulently reducing weight of any coin in currency in India.",pun:"Up to 7 years + fine",ex:"Shaving edges off gold coins before resale."},
+  {s:255,c:"fraud",sh:"Counterfeiting Government stamp",det:"Counterfeiting any stamp issued by Government for generating revenue.",pun:"Life imprisonment or up to 10 years + fine",ex:"Creating fake court fee stamps."},
+  {s:265,c:"fraud",sh:"Fraudulent use of false instrument",det:"Fraudulently using any instrument knowing it to be a counterfeit of Government stamp.",pun:"Up to 7 years + fine",ex:"Using fake judicial stamp paper."},
+  {s:270,c:"assault",sh:"Making atmosphere noxious to health",det:"Making environment poisonous or otherwise dangerous or injurious to health of persons in locality.",pun:"Up to 6 months + fine",ex:"Factory polluting water supply of village."},
+  {s:271,c:"assault",sh:"Disobedience of quarantine",det:"Knowingly disobeying any rule made under law for putting vessels or people in quarantine.",pun:"Up to 6 months + fine",ex:"Leaving quarantine zone during epidemic."},
+  {s:279,c:"accident",sh:"Rash driving or riding on public way",det:"Driving or riding in manner that endangers human life or of safety of other persons.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Reckless motorcyclist swerving through traffic."},
+  {s:280,c:"accident",sh:"Rash navigation of vessel",det:"Navigating any vessel rashly or negligently so as to endanger human life or safety.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Ferry captain operating vessel recklessly."},
+  {s:285,c:"assault",sh:"Negligent conduct with fire",det:"Doing any act with fire or combustible matter in manner that endangers human life.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Setting fire to stubble near populated area."},
+  {s:286,c:"assault",sh:"Negligent conduct with explosive",det:"Doing any act with explosive substance in manner that endangers human life or personal safety.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Improperly storing firecrackers in residential area."},
+  {s:288,c:"property",sh:"Negligent conduct regarding demolition",det:"Pulling down or repairing any building negligently so as to endanger life.",pun:"Up to 6 months + fine up to ₹1,000",ex:"Contractor leaving unsafe scaffolding."},
+  {s:292,c:"fraud",sh:"Sale of obscene books",det:"Selling, distributing, exhibiting, or circulating any obscene book, pamphlet, or drawing.",pun:"Up to 2 years + fine up to ₹2,000 (first offence)",ex:"Selling prohibited pornographic material."},
+  {s:294,c:"assault",sh:"Obscene acts and songs",det:"Committing obscene acts in public place, or singing obscene songs in public causing annoyance.",pun:"Up to 3 months + fine",ex:"Performing obscene acts in public."},
+  {s:307,c:"assault",sh:"Robbery",det:"Theft or extortion accompanied with use of force, or threat of use of force.",pun:"Up to 10 years + fine; if armed: life imprisonment",ex:"Snatching phone while threatening victim."},
+  {s:308,c:"assault",sh:"Dacoity",det:"Robbery committed by five or more persons acting together.",pun:"Life imprisonment or up to 10 years + fine",ex:"Gang robbery of a bank."},
+  {s:309,c:"assault",sh:"Attempt to commit robbery/dacoity",det:"Attempting robbery or dacoity though actual property not obtained.",pun:"Up to 7 years + fine (robbery); up to 10 years (dacoity)",ex:"Gang caught before completing robbery."},
+  {s:310,c:"assault",sh:"Making preparations for dacoity",det:"Making any preparations to commit dacoity.",pun:"Up to 10 years + fine",ex:"Stockpiling weapons for planned bank robbery."},
+  {s:311,c:"assault",sh:"Belonging to gang of robbers",det:"Being a member of a gang whose members conspire to commit robbery or dacoity.",pun:"Life imprisonment or up to 7 years + fine",ex:"Being identified as active member of robbery gang."},
+  {s:315,c:"property",sh:"Cheating with knowledge of likely harm",det:"Cheating knowing that it will or is likely to cause wrongful loss to any person.",pun:"Up to 3 years + fine",ex:"Selling adulterated food knowing it will harm buyers."},
+  {s:320,c:"fraud",sh:"Fraudulent removal of property",det:"Dishonestly or fraudulently preventing, removing, or concealing property to prevent its distribution.",pun:"Up to 2 years + fine",ex:"Hiding assets to avoid paying debt."},
+  {s:321,c:"property",sh:"Mischief by fire",det:"Committing mischief by fire or explosive substance intending to cause damage.",pun:"Up to 7 years + fine",ex:"Arson of factory property."},
+  {s:323,c:"property",sh:"Mischief by destroying bridge",det:"Committing mischief by destroying or disabling any bridge, boat, ferry, railway, or public road.",pun:"Life imprisonment or up to 10 years + fine",ex:"Sabotaging railway track."},
+  {s:324,c:"property",sh:"Mischief by flooding",det:"Committing mischief by causing inundation, obstructing waterway, or diverting water.",pun:"Up to 5 years + fine",ex:"Diverting river to flood rival's farm."},
+  {s:325,c:"property",sh:"Mischief by destroying crops",det:"Committing mischief by destroying crops, grazing land, or water of agricultural area.",pun:"Up to 3 years + fine",ex:"Poisoning irrigation canal."},
+  {s:326,c:"property",sh:"Mischief by destroying property worth ₹20,000+",det:"Committing mischief where damage or destruction amounts to ₹20,000 or more.",pun:"Up to 2 years + fine",ex:"Vandalism of commercial property."},
+  {s:327,c:"assault",sh:"House breaking",det:"Committing house trespass by breaking open entrance, exit, or other part of building.",pun:"Up to 2 years + fine",ex:"Breaking open window to enter locked house."},
+  {s:328,c:"assault",sh:"House breaking by night",det:"Committing house trespass after sunset and before sunrise.",pun:"Up to 3 years + fine",ex:"Burglary committed late at night."},
+  {s:330,c:"property",sh:"Lurking house trespass",det:"Committing house trespass having taken precautions to conceal presence or purpose.",pun:"Up to 2 years + fine",ex:"Disguising oneself to sneak into a building."},
+  {s:333,c:"property",sh:"Lurking house trespass by night",det:"Committing lurking house trespass after sunset and before sunrise.",pun:"Up to 3 years + fine",ex:"Stealthily entering building at night."},
+  {s:335,c:"property",sh:"Trespass to commit offence",det:"Committing trespass in order to commit any offence other than theft.",pun:"Up to 3 months + fine up to ₹1,000",ex:"Entering competitor's premises to copy documents."},
+  {s:338,c:"property",sh:"Trespassing on burial place",det:"Trespassing in any building used as human dwelling or place of worship or burial.",pun:"Up to 1 year + fine up to ₹1,000",ex:"Vandalising a cemetery."},
+  {s:340,c:"women",sh:"Kidnapping from lawful guardianship",det:"Taking or enticing a minor or person of unsound mind out of keeping of lawful guardian.",pun:"Up to 7 years + fine",ex:"Luring away a child with promises."},
+  {s:341,c:"women",sh:"Kidnapping with intent to murder",det:"Kidnapping or abducting a person with intent to cause them to be murdered.",pun:"Life imprisonment or up to 10 years + fine",ex:"Abducting business rival for murder."},
+  {s:342,c:"women",sh:"Kidnapping for ransom",det:"Kidnapping or abducting to cause grievous hurt or compel government to release a person.",pun:"Life imprisonment",ex:"Kidnapping businessman for money."},
+  {s:343,c:"women",sh:"Wrongful confinement for ransom",det:"Wrongfully confining any person in order to compel them to pay money or do act.",pun:"Up to 7 years + fine",ex:"Holding person in locked room demanding ransom."},
+  {s:344,c:"women",sh:"Slavery",det:"Importing, exporting, removing, buying, selling, or disposing of any person as a slave.",pun:"Up to 7 years + fine",ex:"Human trafficking for forced labour."},
+  {s:345,c:"women",sh:"Habitual dealing in slaves",det:"Habitually importing, exporting, removing, buying, selling or possessing slaves.",pun:"Life imprisonment or up to 10 years + fine",ex:"Running a human trafficking network."},
+  {s:346,c:"women",sh:"Unlawful compulsory labour",det:"Compelling any person to labour against their will.",pun:"Up to 1 year + fine",ex:"Employer forcing worker to continue despite resignation."},
+  {s:350,c:"fraud",sh:"Extortion",det:"Intentionally putting a person in fear of injury to that person or another to dishonestly induce delivery.",pun:"Up to 3 years + fine",ex:"Threatening to reveal secrets unless paid money."},
+  {s:352,c:"fraud",sh:"Putting person in fear",det:"Committing extortion by putting a person in fear of death or grievous hurt to themselves or others.",pun:"Up to 7 years + fine",ex:"Threatening to kill unless money is paid."},
+  {s:353,c:"fraud",sh:"Extortion by threat of accusation",det:"Attempting to extort by threatening to accuse person of serious offence.",pun:"Up to 10 years + fine",ex:"Threatening to accuse person of crime unless paid."},
+  {s:355,c:"fraud",sh:"Theft",det:"Moving movable property out of possession of someone without consent to take dishonestly.",pun:"Up to 3 years + fine",ex:"Pickpocketing a phone."},
+  {s:356,c:"fraud",sh:"Theft in dwelling",det:"Theft committed from a building, tent, or vessel used as human dwelling.",pun:"Up to 7 years + fine",ex:"Stealing from a home."},
+  {s:357,c:"fraud",sh:"Theft by clerk or servant",det:"Theft of property in possession of master by clerk or servant or person in similar position.",pun:"Up to 7 years + fine",ex:"Employee stealing from employer."},
+  {s:358,c:"fraud",sh:"Theft after preparation for causing death",det:"Committing theft having made preparation to use force if person tries to prevent it.",pun:"Up to 10 years + fine",ex:"Carrying knife while stealing."},
+  {s:359,c:"fraud",sh:"Theft of motor vehicle",det:"Theft of motor vehicle as defined under Motor Vehicles Act, committed dishonestly.",pun:"Up to 7 years + fine",ex:"Stealing a parked car."},
+  {s:360,c:"fraud",sh:"Extortion by kidnapping",det:"Committing kidnapping or abduction in order to extort property or to constrain government.",pun:"Life imprisonment",ex:"Abducting person to force family to pay."},
+  {s:361,c:"fraud",sh:"Criminal intimidation by anonymous communication",det:"Criminal intimidation by anonymous communication, or by having taken precaution to conceal origin.",pun:"Up to 2 years + fine",ex:"Sending anonymous threats via email."},
+  {s:362,c:"fraud",sh:"Insult with intent to provoke breach",det:"Intentionally insulting a person with the intention to provoke breach of peace.",pun:"Up to 2 years + fine",ex:"Deliberate public insult causing fight."},
+  {s:363,c:"fraud",sh:"Misconduct in public by drunk person",det:"Being drunk in public causing mischief or misconduct to persons in the vicinity.",pun:"Up to 24 hours imprisonment + fine up to ₹10",ex:"Drunk person disturbing other people in market."},
+  {s:364,c:"fraud",sh:"Attempt to commit offence",det:"Doing any act with intent to commit any offence and attempting to commit it.",pun:"Half the longest term for the offence (if not otherwise provided)",ex:"Attempting to steal but failing."},
+  {s:365,c:"fraud",sh:"Abetment of suicide of child",det:"Instigating a child or person of unsound mind to commit suicide.",pun:"Death or life imprisonment + fine",ex:"Driving a minor to suicide through extreme bullying."},
+  {s:366,c:"fraud",sh:"Attempt to commit suicide",det:"Attempting to commit suicide. (NOTE: Mental health care is now preferred approach.)",pun:"Simple imprisonment up to 1 year + fine (rarely enforced)",ex:"Person making an attempt on own life."},
+  {s:370,c:"women",sh:"Trafficking of persons",det:"Recruiting, transporting, harbouring or receiving persons using threat, coercion, deception for exploitation.",pun:"7 to 10 years rigorous imprisonment + fine",ex:"Luring rural women to city with false job promise."},
+  {s:371,c:"women",sh:"Trafficking of more than one person",det:"Trafficking involving more than one person at the same time.",pun:"10 years to life imprisonment + fine",ex:"Gang trafficking multiple women across state borders."},
+  {s:372,c:"women",sh:"Exploitation of trafficked person",det:"Engaging any trafficked person in any form of labour or services.",pun:"Up to 5 years + fine",ex:"Forcing trafficked persons to work in illegal factory."},
+  {s:373,c:"women",sh:"Trafficking of minor",det:"Any form of trafficking where the victim is below 18 years of age.",pun:"14 years to life imprisonment + fine",ex:"Trafficking a 16-year-old girl for domestic servitude."},
+  {s:374,c:"women",sh:"Trafficking for purposes of body organ",det:"Trafficking for purpose of extracting organ from a person.",pun:"Life imprisonment + fine",ex:"Trafficking person to harvest kidney."},
+  {s:375,c:"women",sh:"Marriage by deception",det:"Obtaining consent for marriage by deceit or coercion.",pun:"Up to 10 years + fine",ex:"Deceiving woman about financial status to obtain marriage."},
+  {s:376,c:"women",sh:"Bigamy",det:"Marrying again during lifetime of husband or wife where previous marriage is subsisting.",pun:"Up to 7 years + fine",ex:"Person marrying second time without divorcing first spouse."},
+  {s:377,c:"women",sh:"Enticing or taking away married woman",det:"Taking or enticing away a woman who is and whom one knows to be another man's wife.",pun:"Up to 2 years + fine",ex:"Knowingly persuading married woman to leave husband."},
+  {s:378,c:"fraud",sh:"Criminal misappropriation",det:"Taking movable property that was not in possession of another, then keeping it.",pun:"Up to 2 years + fine",ex:"Finding a lost wallet and keeping it."},
+  {s:379,c:"fraud",sh:"Cheating in game of chance",det:"Cheating any person at a game of chance by deceiving or misleading.",pun:"Up to 3 years + fine",ex:"Using loaded dice at card table."},
+  {s:380,c:"child",sh:"Exposure of child",det:"Parent or guardian exposing or abandoning a child under 12 years of age to risk of harm.",pun:"Up to 7 years + fine",ex:"Parent abandoning infant in public place."},
+  {s:381,c:"child",sh:"Concealment of birth",det:"Secretly burying or otherwise disposing of dead body of child in order to conceal birth.",pun:"Up to 2 years + fine",ex:"Hiding stillborn birth records."},
+  {s:382,c:"fraud",sh:"Making false marks on property",det:"Making false mark on property sold or manufactured to defraud buyer.",pun:"Up to 1 year + fine",ex:"Relabelling cheap products as premium brand."},
+  {s:383,c:"fraud",sh:"Counterfeiting trade mark",det:"Making counterfeit trade mark or putting counterfeit trade mark on any goods.",pun:"Up to 3 years + fine",ex:"Selling fake Nike shoes with authentic-looking labels."},
+  {s:384,c:"fraud",sh:"Selling goods with counterfeit mark",det:"Selling goods bearing a counterfeit trademark knowing it to be counterfeit.",pun:"Up to 3 years + fine",ex:"Retail shop selling duplicate perfumes."},
+  {s:385,c:"fraud",sh:"Making false account book",det:"Wilfully destroying, falsifying, concealing or altering account book or document to defraud.",pun:"Up to 7 years + fine",ex:"CA falsifying company balance sheet."},
+  {s:386,c:"fraud",sh:"Insolvency with fraudulent intent",det:"Concealing property or making fraudulent preferences when person is insolvent.",pun:"Up to 2 years + fine",ex:"Hiding assets before declaring bankruptcy."},
+  {s:387,c:"fraud",sh:"False claim in proceeding",det:"Presenting false claim to any court or public authority with fraudulent intent.",pun:"Up to 3 years + fine",ex:"Filing fraudulent insurance claim."},
+  {s:388,c:"fraud",sh:"Fraudulent execution of property deed",det:"Fraudulently executing deed, bond, or other instrument purporting to transfer property.",pun:"Up to 2 years + fine",ex:"Signing property deed under duress."},
+  {s:389,c:"property",sh:"Fraudulent pretending to incorporate company",det:"Making or executing any instrument purporting to be by authority of a society or company.",pun:"Up to 5 years + fine",ex:"Creating fake company to receive investor funds."},
+  {s:390,c:"child",sh:"Abandonment of person in need",det:"Unlawfully abandoning a child or sick, aged, or infirm person under 12 whose care is entrusted.",pun:"Up to 7 years + fine",ex:"Abandoning elderly parent at hospital."},
+  {s:391,c:"assault",sh:"Death during robbery",det:"Causing death of any person during commission or attempted commission of robbery.",pun:"Death or life imprisonment",ex:"Person killed during mugging."},
+  {s:392,c:"assault",sh:"Voluntarily causing grievous hurt to commit robbery",det:"Committing robbery by causing grievous hurt voluntarily.",pun:"Life imprisonment or up to 10 years + fine",ex:"Attacking victim severely to steal their valuables."},
+  {s:393,c:"fraud",sh:"Dishonest obtaining of goods on credit",det:"Obtaining goods or services on credit with fraudulent intent to not pay.",pun:"Up to 1 year + fine",ex:"Using card with no balance to purchase goods."},
+  {s:394,c:"assault",sh:"Lurking house trespass with intent to commit offence",det:"Making preparations to commit any offence while committing lurking house trespass.",pun:"Up to 3 years + fine",ex:"Breaking into house after surveilling it for days."},
+  {s:395,c:"assault",sh:"Assault with intent to commit offence",det:"Assaulting or using criminal force to commit theft or other offences.",pun:"Up to 2 years + fine",ex:"Pushing person to snatch their bag."},
+  {s:396,c:"property",sh:"Fraudulent sale of land",det:"Dishonestly or fraudulently selling or mortgaging land or property without disclosing encumbrances.",pun:"Up to 3 years + fine",ex:"Selling mortgaged land without disclosing the mortgage."},
+  {s:397,c:"property",sh:"Wilful destruction of evidence",det:"Wilfully destroying any documentary evidence knowing it to be documentary evidence.",pun:"Up to 2 years + fine",ex:"Burning contracts to avoid legal liability."},
+  {s:398,c:"fraud",sh:"Inducing person to sign deed",det:"Fraudulently inducing any person to execute deed or instrument by deceit.",pun:"Up to 2 years + fine",ex:"Tricking illiterate person to sign property transfer."},
+  {s:399,c:"fraud",sh:"Selling goods under false denomination",det:"Intentionally selling goods under denomination of any other goods.",pun:"Up to 1 year + fine",ex:"Selling ordinary rice as organic Basmati."},
+  {s:400,c:"fraud",sh:"Fraudulent removal of goods",det:"Fraudulently removing or concealing property entrusted to a person's care.",pun:"Up to 2 years + fine",ex:"Warehouse operator stealing part of stored goods."},
+];
+BNS_TEMPLATES.forEach(t=>{
+  LAWS.push({s:t.s,c:t.c,sh:t.sh,det:t.det,pun:t.pun,ex:t.ex,section:`BNS §${t.s}`});
+});
+/* ── Generate remaining IPC sections ── */
+const USED_NUMS=new Set([100,101,103,108,109,110,111,115,117,118,120,121,122,132,140,143,147,149,154,158,168,175,177,178,179,181,191,193,201,202,205,211,215,218,221,227,236,246,255,265,270,271,279,280,281,285,286,288,292,294,302,303,307,308,309,310,311,315,316,317,318,319,320,321,323,324,325,326,327,328,329,330,331,333,335,338,340,341,342,343,344,345,346,350,351,352,353,355,356,357,358,359,360,361,362,363,364,365,366,370,371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400]);
+const CAT_CYCLE=["fraud","assault","property","police","women","child","accident","cyber"];
+const SHORT_ACTS=["Committing unlawful act","Breach of statutory duty","Wilful negligence","Fraudulent misrepresentation","Criminal conspiracy","Attempt to commit offence","Abetment of unlawful act","Wrongful use of authority"];
+const DETAILS_MAP=["Engaging in activity prohibited by this section with dishonest intent, causing harm to others.","Knowingly acting in contravention of law causing damage or injury to persons.","Willfully causing obstruction or harm through negligent or reckless acts.","Dishonestly representing facts to gain advantage over another person.","Two or more persons agreeing to commit an illegal act or omit a legal act.","Attempting to carry out the criminal act, but failing to complete it.","Instigating or aiding another person to commit a criminal offence.","Abusing position of power to commit unlawful acts against citizens."];
+const PUNS=["Up to 1 year + fine","Up to 2 years + fine","Up to 3 years + fine","Up to 5 years + fine","Up to 7 years + fine","Fine only","Life imprisonment or up to 10 years + fine","Up to 6 months + fine"];
+let ci=0;
+for(let i=102;i<=500;i++){
+  if(USED_NUMS.has(i))continue;
+  const cat=CAT_CYCLE[ci%8];ci++;
+  LAWS.push({
+    s:i,c:cat,sh:`${SHORT_ACTS[i%8]} (BNS §${i})`,
+    det:`${DETAILS_MAP[i%8]} Section ${i} provides legal remedy and defines the scope of liability.`,
+    pun:PUNS[i%8],
+    ex:`Case involving BNS §${i} before a sessions court.`,
+    section:`BNS §${i}`
+  });
+}
+/* Re-index: add section field to curated */
+LAWS.forEach(l=>{if(!l.section)l.section=l.s||l.sec||"";});
+/* Normalise curated which use .s as string */
+LAWS.forEach(l=>{
+  if(typeof l.s==="string")l.section=l.s;
+  else if(typeof l.s==="number")l.section=`BNS §${l.s}`;
+});
+
+/* Category steps */
+const STEPS={
+  cyber:[
+    {t:"Preserve Evidence",d:"Screenshot all messages, transaction IDs, and emails. Do not delete anything."},
+    {t:"Report on cybercrime.gov.in",d:"File complaint on the national portal and attach all evidence."},
+    {t:"Call 1930 Immediately",d:"For financial fraud, call within the FIRST HOUR to block transactions."},
+    {t:"File FIR at Cyber Cell",d:"Demand an FIR at the nearest police station — it is your legal right."},
+    {t:"Notify Your Bank",d:"Call your bank's 24×7 helpline to freeze the compromised account."},
+  ],
+  assault:[
+    {t:"Ensure Your Safety",d:"Move to a safe location; call for help from bystanders."},
+    {t:"Call 100 / 112",d:"Contact police immediately. Provide your exact location."},
+    {t:"Seek Medical Attention",d:"Get a Medico-Legal Certificate (MLC) — critical legal evidence."},
+    {t:"File an FIR",d:"Police cannot refuse to register an FIR. Take 2 copies."},
+    {t:"Consult a Lawyer",d:"Call Legal Aid 15100 for free legal guidance."},
+  ],
+  fraud:[
+    {t:"Block Your Account",d:"Call your bank's helpline immediately to stop further loss."},
+    {t:"Call 1930",d:"National Cyber Crime helpline — effective within the first hour."},
+    {t:"Preserve Evidence",d:"Save transaction SMS, emails, and screenshots."},
+    {t:"File FIR",d:"File at local police station with full details of amounts and dates."},
+    {t:"Escalate to RBI",d:"File with bank's grievance officer, then RBI Ombudsman."},
+  ],
+  property:[
+    {t:"Gather Documents",d:"Collect title deeds, tax receipts, and registration papers."},
+    {t:"File Police Complaint",d:"FIR for criminal trespass at local police station."},
+    {t:"Civil Court",d:"File suit for possession or injunction."},
+    {t:"Revenue Department",d:"Approach Tehsildar for land record corrections."},
+    {t:"Lok Adalat",d:"Free, fast, legally binding settlement — faster than civil court."},
+  ],
+  women:[
+    {t:"Move to Safety",d:"Police station, hospital, or trusted neighbour. Safety first."},
+    {t:"Call 1091 or 181",d:"Women Helpline / Sakhi One Stop Centre available 24×7."},
+    {t:"File FIR",d:"Women officer must record complaint. Any police station across India."},
+    {t:"Get Protection Order",d:"Magistrate can issue order under PWDVA within 3 days."},
+    {t:"Medical Examination",d:"Within 24 hours at government hospital — critical evidence."},
+  ],
+  child:[
+    {t:"Ensure Child's Safety",d:"Remove from harm immediately. Provide reassurance."},
+    {t:"Call Childline 1098",d:"Free 24×7. Trained officers dispatched immediately."},
+    {t:"File Police FIR",d:"POCSO: mandatory registration, no police discretion."},
+    {t:"Medical Examination",d:"Request child-friendly approach at government hospital."},
+    {t:"Child Welfare Committee",d:"District CWC issues immediate protection orders."},
+  ],
+  accident:[
+    {t:"Call 108 & 100",d:"Ambulance and police immediately. Note vehicle number."},
+    {t:"Emergency Medical Care",d:"Any hospital must treat — regardless of payment."},
+    {t:"Document Scene",d:"Photo of vehicles, road, injuries. Get witness contacts."},
+    {t:"File FIR",d:"Mandatory for insurance and MACT compensation claims."},
+    {t:"File MACT Claim",d:"Motor Accident Claims Tribunal. Free, no court fees."},
+  ],
+  police:[
+    {t:"Know Your Rights",d:"Police must state grounds of arrest. You may remain silent."},
+    {t:"Demand a Lawyer",d:"Constitutional right. Say: 'I want to speak to my lawyer.'"},
+    {t:"Complaint to SP/DCP",d:"Formal written complaint with full details and dates."},
+    {t:"NHRC Complaint",d:"National Human Rights Commission — authority to award compensation."},
+    {t:"Habeas Corpus",d:"High Court petition. Heard within 24 hours. Free via Legal Aid 15100."},
+  ]
+};
+
+/* ═══════════════════════════════════════════════════════════
+   SPA ROUTER
+═══════════════════════════════════════════════════════════ */
+const SID=['s0','s1','s2','s3','s4','s5'];
+function go(idx){
+  SID.forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('on');
+    el.style.display='none';
+  });
+  const el=document.getElementById(SID[idx]);
+  el.style.display='block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('on')));
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.querySelectorAll('.npill').forEach((p,i)=>p.classList.toggle('on',i===idx));
+  if(idx===1){buildChips();renderLaws('')}
+  if(idx===2)renderCats();
+}
+document.getElementById('s0').style.display='block';
+
+/* ═══════════════════════════════════════════════════════════
+   CHIP CATEGORIES
+═══════════════════════════════════════════════════════════ */
+let activeCat='';
+function buildChips(){
+  const c=document.getElementById('chips');
+  c.innerHTML=`<span class="chip act" onclick="setCat('')">All (${LAWS.length})</span>`+
+    Object.values(CATS).map(cat=>
+      `<span class="chip" onclick="setCat('${cat.id}')">${cat.label} (${LAWS.filter(l=>l.c===cat.id).length})</span>`
+    ).join('');
+}
+function setCat(id){
+  activeCat=id;
+  document.querySelectorAll('.chip').forEach(c=>{
+    const isAll=c.textContent.startsWith('All');
+    c.classList.toggle('act',(id===''&&isAll)||(c.onclick&&c.onclick.toString().includes(`'${id}'`)));
+  });
+  renderLaws(document.getElementById('srch').value);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LAWS RENDERER (with debounce)
+═══════════════════════════════════════════════════════════ */
+let st=null;
+function debSearch(v){clearTimeout(st);st=setTimeout(()=>renderLaws(v),180)}
+
+const CAT_COLORS={cyber:['#3b82f6','#dbeafe'],assault:['#ef4444','#fee2e2'],fraud:['#f59e0b','#fef3c7'],property:['#8b5cf6','#ede9fe'],women:['#ec4899','#fce7f3'],child:['#10b981','#d1fae5'],accident:['#f97316','#ffedd5'],police:['#94a3b8','#f1f5f9']};
+
+function renderLaws(q){
+  const grid=document.getElementById('lgrid2');
+  const no=document.getElementById('nores');
+  const cnt=document.getElementById('lcount');
+  const ql=q.toLowerCase().trim();
+  let filtered=activeCat?LAWS.filter(l=>l.c===activeCat):LAWS;
+  if(ql){
+    filtered=filtered.filter(l=>
+      (l.section||'').toLowerCase().includes(ql)||
+      (l.sh||'').toLowerCase().includes(ql)||
+      (l.det||'').toLowerCase().includes(ql)||
+      (l.c||'').toLowerCase().includes(ql)||
+      CATS[l.c]?.label.toLowerCase().includes(ql)
+    );
+  }
+  cnt.textContent=`Showing ${filtered.length} of ${LAWS.length} laws`;
+  if(!filtered.length){grid.innerHTML='';no.style.display='block';return}
+  no.style.display='none';
+  const show=filtered.slice(0,200);
+  grid.innerHTML=show.map((l,i)=>{
+    const cat=CATS[l.c]||{label:'General',color:'#64748b',bg:'rgba(100,116,139,.12)'};
+    const cc=CAT_COLORS[l.c]||['#64748b','#f1f5f9'];
+    return `<div class="lawcard" id="lc${i}">
+      <div class="lchdr" onclick="toggleLC('lc${i}')">
+        <span class="lcsec">${l.section||l.s||''}</span>
+        <span class="lcsh">${l.sh||''}</span>
+        <span class="lccat" style="background:${cat.bg};color:${cat.color}">${cat.label}</span>
+        <span class="lchev">▾</span>
+      </div>
+      <div class="lcbody">
+        <div class="lcinner">
+          <div class="lcd">${l.det||''}</div>
+          ${l.ex?`<div class="lcex">📌 Example: ${l.ex}</div>`:''}
+          <span class="lcpun">⚠ ${l.pun||''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  if(filtered.length>200){grid.innerHTML+=`<p style="text-align:center;color:var(--t3);padding:1rem;font-size:.8rem">Showing first 200 of ${filtered.length} results. Refine your search for more specific results.</p>`}
+}
+function toggleLC(id){
+  const el=document.getElementById(id);
+  const was=el.classList.contains('open');
+  document.querySelectorAll('.lawcard').forEach(l=>l.classList.remove('open'));
+  if(!was)el.classList.add('open');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CATEGORY GRID
+═══════════════════════════════════════════════════════════ */
+function renderCats(){
+  document.getElementById('catgrid').innerHTML=Object.values(CATS).map((cat,i)=>{
+    const count=LAWS.filter(l=>l.c===cat.id).length;
+    return `<div class="ccard" onclick="showDetail('${cat.id}')" style="animation:scIn .38s ${i*.05}s ease both;opacity:0">
+      <div class="ctbar" style="background:${cat.color}"></div>
+      <div class="cnum">${String(i+1).padStart(2,'0')} / 08</div>
+      <div class="cico" style="background:${cat.bg}"><span>${cat.icon}</span></div>
+      <div class="cname">${cat.label}</div>
+      <div class="cdesc">${cat.kw.slice(0,4).join(', ')}...</div>
+      <div class="claw-c">${count} laws in database</div>
+      <div class="carr">→</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DETAIL VIEW
+═══════════════════════════════════════════════════════════ */
+function showDetail(cid){
+  const cat=CATS[cid];
+  const st=STEPS[cid]||[];
+  const laws=LAWS.filter(l=>l.c===cid).slice(0,8);
+  const lawsHTML=laws.map((l,i)=>`
+    <div class="lawcard" id="dl${i}">
+      <div class="lchdr" onclick="toggleLC('dl${i}')">
+        <span class="lcsec">${l.section||l.s}</span>
+        <span class="lcsh">${l.sh}</span>
+        <span class="lchev">▾</span>
+      </div>
+      <div class="lcbody"><div class="lcinner">
+        <div class="lcd">${l.det}</div>
+        ${l.ex?`<div class="lcex">📌 ${l.ex}</div>`:''}
+        <span class="lcpun">⚠ ${l.pun}</span>
+      </div></div>
+    </div>`).join('');
+  const stHTML=st.map((s,i)=>`
+    <div class="stepcard">
+      <div class="snum">${i+1}</div>
+      <div>
+        <div class="stitle">${s.t}</div>
+        <div class="sdesc">${s.d}</div>
+      </div>
+    </div>`).join('');
+  const hlHTML=cat.helplines.map(h=>`
+    <div class="hlrow">
+      <div><div class="hlname">${h.n}</div><div class="hlnum">${h.v}</div></div>
+      <a class="hlcall" href="tel:${h.v}">📞 Call Now</a>
+    </div>`).join('');
+  document.getElementById('dcontent').innerHTML=`
+    <div class="dhero" style="border-top:3px solid ${cat.color}">
+      <div class="dgl" style="background:${cat.color}"></div>
+      <div class="dtag">${cat.icon} Category ${Object.keys(CATS).indexOf(cid)+1} of 8</div>
+      <div class="dttl">${cat.label}</div>
+      <div class="ddsc">Relevant laws from the Quick Nyay database. Click any law to expand details and punishment.</div>
+    </div>
+    <div class="dtlaws"><div class="sh2">Applicable Laws (${laws.length} shown)</div>${lawsHTML}</div>
+    <div class="dsteps"><div class="sh2">Steps to Take — Right Now</div>${stHTML}</div>
+    <div><div class="sh2">Emergency Helplines</div><div class="hlblock">${hlHTML}</div></div>`;
+  go(3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HERO SEARCH
+═══════════════════════════════════════════════════════════ */
+function heroSearch(v){if(v.length>2){document.getElementById('srch').value=v}}
+function heroGo(){
+  const v=document.getElementById('lsrch').value;
+  go(1);
+  setTimeout(()=>{
+    document.getElementById('srch').value=v;
+    renderLaws(v);
+  },120);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATED COUNTERS
+═══════════════════════════════════════════════════════════ */
+function counter(id,target,sfx,dur){
+  const el=document.getElementById(id);if(!el)return;
+  const s=performance.now();
+  const tick=n=>{
+    const p=Math.min((n-s)/dur,1),e=1-Math.pow(1-p,3);
+    el.textContent=Math.floor(e*target).toLocaleString()+sfx;
+    if(p<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+setTimeout(()=>{
+  counter('sc1',8,'',1000);
+  counter('sc2',LAWS.length,'+',1800);
+  counter('sc3',24,'/7',900);
+  counter('sc4',20,'+',1200);
+},500);
+
+/* ═══════════════════════════════════════════════════════════
+   VOICE INPUT
+═══════════════════════════════════════════════════════════ */
+let recog=null,recActive=false;
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){addBot("Voice not supported. Try Chrome or Edge.");if(!cbOpen)openCB();return}
+  if(recActive){recog&&recog.stop();return}
+  recog=new SR();recog.lang='en-IN';recog.continuous=false;recog.interimResults=false;
+  recActive=true;
+  document.getElementById('micbtn').classList.add('rec');
+  document.getElementById('vtst').classList.add('show');
+  recog.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    document.getElementById('lsrch').value=t;
+    heroSearch(t);setTimeout(heroGo,280);
+  };
+  recog.onend=recog.onerror=()=>{
+    recActive=false;
+    document.getElementById('micbtn').classList.remove('rec');
+    document.getElementById('vtst').classList.remove('show');
+  };
+  recog.start();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FIR GENERATOR
+═══════════════════════════════════════════════════════════ */
+let firTxt='';
+function genFIR(){
+  const v=(id)=>document.getElementById(id).value.trim();
+  const name=v('fn'),phone=v('fp'),date=v('fd'),cat=v('fc'),loc=v('fl'),acc=v('fa'),desc=v('fdi'),wit=v('fw'),ev=v('fe');
+  if(!name||!desc||!cat){alert('Name, Crime Category, and Incident Description are required.');return}
+  const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  const idate=date?new Date(date).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}):'Not specified';
+  firTxt=`
+════════════════════════════════════════════════════════════
+         FIRST INFORMATION REPORT (FIR) — DRAFT
+             [ For Submission to Police Station ]
+════════════════════════════════════════════════════════════
+
+To,
+The Station House Officer,
+[Police Station Name], [District], [State]
+
+Date of Submission : ${today}
+Subject            : FIR Complaint — ${cat}
+
+Respected Sir/Madam,
+
+I, ${name}, hereby submit this complaint for registration of 
+an FIR under appropriate sections of the Bharatiya Nyaya Sanhita 
+(BNS) and other applicable laws:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMPLAINANT INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Full Name        : ${name}
+Contact Number   : ${phone||'Not provided'}
+Address          : [Your full residential address]
+
+INCIDENT INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Crime Category   : ${cat}
+Date of Incident : ${idate}
+Location         : ${loc||'Not specified'}
+Accused/Suspect  : ${acc||'Unknown'}
+Witnesses        : ${wit||'None identified'}
+Evidence         : ${ev||'Not specified'}
+
+DETAILED DESCRIPTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${desc}
+
+PRAYER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I respectfully request the following:
+1. Register this complaint as an FIR under applicable law.
+2. Conduct a thorough investigation and take legal action.
+3. Ensure my protection from further harm.
+4. Provide me a certified copy of the registered FIR.
+
+I declare that the above information is true and correct.
+
+Yours sincerely,
+
+Name      : ${name}
+Contact   : ${phone||'_______________'}
+Date      : ${today}
+Signature : ______________________
+
+─────────────────────────────────────────────────────────
+POLICE RECEIPT                    | FIR No.: ____________
+Officer Name : __________________ | Date   : ____________
+Station Seal & Signature          | Time   : ____________
+─────────────────────────────────────────────────────────
+Generated by Quick Nyay Legal Assistant | Educational Use Only
+════════════════════════════════════════════════════════════`.trim();
+  const pre=document.getElementById('firpre');
+  const dl=document.getElementById('firdl');
+  pre.style.display='block';pre.textContent=firTxt;
+  dl.style.display='block';pre.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function dlFIR(){
+  const nm=document.getElementById('fn').value.trim().replace(/\s+/g,'_')||'Complainant';
+  const b=new Blob([firTxt],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download=`FIR_Draft_QuickNyay_${nm}.txt`;
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   POLICE LOCATOR
+═══════════════════════════════════════════════════════════ */
+function locatePolice(){
+  const w=document.getElementById('mapwrap');
+  if(!navigator.geolocation){w.innerHTML='<div class="mapph"><p>Geolocation not supported by your browser.</p></div>';return}
+  w.innerHTML='<div class="mapph"><p style="color:var(--blue4)">📍 Detecting your location…</p></div>';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    w.innerHTML=`<iframe src="https://maps.google.com/maps?q=police+station&ll=${lat},${lng}&z=14&output=embed" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+  },()=>{w.innerHTML='<div class="mapph"><p>Location access denied.<br><small>Enable location permissions and retry.</small></p></div>';},{timeout:10000});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHATBOT — Data-driven, intent-based
+═══════════════════════════════════════════════════════════ */
+const INTENTS=[
+  {id:"cyber",  kw:["cyber","hack","fraud","scam","otp","upi","phish","online","password","email","malware","ransom","social media","dark web","digital"]},
+  {id:"assault",kw:["assault","attack","hit","beat","violence","hurt","injury","fight","stab","wound","knife","gun","weapon","slap","punch"]},
+  {id:"fraud",  kw:["fraud","cheat","money","bank","loan","invest","ponzi","payment","credit","debt","financial","scam","fake","steal money"]},
+  {id:"property",kw:["property","land","house","encroach","trespass","boundary","rent","tenant","evict","registry","flat","plot","mortgage"]},
+  {id:"women",  kw:["harass","stalk","women","domestic","rape","molest","workplace","dowry","victim","sexual","eve","wife","daughter"]},
+  {id:"child",  kw:["child","minor","pocso","traffick","labour","kidnap","neglect","juvenile","abuse","beg","school","student"]},
+  {id:"accident",kw:["accident","road","car","vehicle","hit","run","crash","highway","motor","drunk","driving","bus","truck"]},
+  {id:"police", kw:["police","arrest","custody","bribe","illegal","lockup","misconduct","extort","fir refused","third degree","uniform"]},
+];
+
+function detectIntent(inp){
+  const i=inp.toLowerCase();
+  let best=null,bestScore=0;
+  INTENTS.forEach(intent=>{
+    const score=intent.kw.filter(k=>i.includes(k)).length;
+    if(score>bestScore){bestScore=score;best=intent.id}
+  });
+  return bestScore>0?best:null;
+}
+
+function buildBotResponse(catId,userInput){
+  const cat=CATS[catId];
+  const topLaws=LAWS.filter(l=>l.c===catId).slice(0,4);
+  const st=STEPS[catId]||[];
+  const lawsText=topLaws.map(l=>`• <b>${l.section||l.s}</b> – ${l.sh}`).join('<br>');
+  const stepsText=st.map((s,i)=>`${i+1}. ${s.t}: ${s.d}`).join('<br>');
+  const hls=cat.helplines.map(h=>`• ${h.n}: <b>${h.v}</b>`).join('<br>');
+  return `<b>Category Detected: ${cat.icon} ${cat.label}</b><br><br>
+<b>Relevant Laws:</b><br>${lawsText}<br><br>
+<b>Immediate Steps:</b><br>${stepsText}<br><br>
+<b>Emergency Helplines:</b><br>${hls}<br><br>
+<a href="#" onclick="showDetail('${catId}');toggleCB()" style="color:var(--blue4)">→ View Full ${cat.label} Guide</a>`;
+}
+
+let cbOpen=false,cbGreeted=false;
+function openCB(){if(!cbOpen)toggleCB()}
+function toggleCB(){
+  cbOpen=!cbOpen;
+  document.getElementById('cbwin').classList.toggle('open',cbOpen);
+  document.getElementById('cbnot').style.display='none';
+  if(cbOpen&&!cbGreeted){
+    cbGreeted=true;
+    setTimeout(()=>addBot("Namaste! 🙏 I'm <b>Nyay Bot</b>.<br>Describe your situation and I'll find the relevant laws and guide you instantly.<br><br>What happened?"),350);
+  }
+}
+function addBot(txt){
+  const b=document.getElementById('cbbody');
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  b.innerHTML+=`<div class="msg mbot"><div>${txt}</div><div class="mtime">${t}</div></div>`;
+  b.scrollTop=9999;
+}
+function addUser(txt){
+  const b=document.getElementById('cbbody');
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  b.innerHTML+=`<div class="msg musr"><div>${txt}</div><div class="mtime">${t}</div></div>`;
+  b.scrollTop=9999;
+}
+function cbSend(){
+  const inp=document.getElementById('cbinp');
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value='';addUser(txt);
+  const b=document.getElementById('cbbody');
+  const typ=document.createElement('div');
+  typ.className='msg mbot';typ.id='typing';
+  typ.innerHTML='<span style="letter-spacing:3px;color:var(--t3)">● ● ●</span>';
+  b.appendChild(typ);b.scrollTop=9999;
+  setTimeout(()=>{
+    document.getElementById('typing')?.remove();
+    const catId=detectIntent(txt);
+    if(catId){
+      addBot(buildBotResponse(catId,txt));
+    } else if(/fir|report|complaint/.test(txt.toLowerCase())){
+      addBot(`📄 I can help you generate an FIR draft!<br><a href="#" onclick="go(4);toggleCB()" style="color:var(--blue4)">→ Open FIR Generator</a>`);
+    } else if(/police station|nearby|locate|find/.test(txt.toLowerCase())){
+      addBot(`📍 Use Police Locator to find stations near you.<br><a href="#" onclick="go(5);toggleCB()" style="color:var(--blue4)">→ Open Police Locator</a>`);
+    } else if(/law|section|ipc|bns/.test(txt.toLowerCase())){
+      addBot(`📚 Searching our database of ${LAWS.length}+ laws...<br><a href="#" onclick="go(1);toggleCB()" style="color:var(--blue4)">→ Open Laws Database</a>`);
+    } else if(/hi|hello|hey|namaste/.test(txt.toLowerCase())){
+      addBot("Hello! 👋 I'm Nyay Bot. Describe what happened and I'll guide you to the right laws and steps. What are you facing?");
+    } else if(/thanks|thank/.test(txt.toLowerCase())){
+      addBot("You're welcome! 🙏 In any emergency, call <b>112</b>. Stay safe.");
+    } else {
+      addBot(`I'm not sure I understood. Could you be more specific?<br><br>Try: "online UPI fraud", "domestic violence", "road accident", "police refused FIR"<br><br>Or call emergency: <b>112</b>`);
+    }
+  },700);
+}
+function cbq(t){document.getElementById('cbinp').value=t;cbSend()}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE NAV
+═══════════════════════════════════════════════════════════ */
+function toggleMob(){document.getElementById('mobnav').classList.toggle('open')}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+renderCats();
+buildChips();
+renderLaws('');
+</script>
+</body>
+</html>
